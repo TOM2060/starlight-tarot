@@ -63,3 +63,202 @@
   color: var(--ink-2);
 }
 .poster__close:active { color: var(--gold); border-color: var(--glass-line-2); }
+
+/* ============================================================
+   设置面板
+   ============================================================ */
+.settings {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fade .25s var(--ease-soft) both;
+}
+
+.settings__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 3, 11, .86);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.settings__box {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 24px 22px 20px;
+  border-radius: var(--r-lg);
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-line-2);
+  box-shadow: 0 30px 70px -28px rgba(0, 0, 0, .95);
+  animation: rise .4s var(--ease-out) both;
+}
+
+.settings__h {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: .16em;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.srow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 2px;
+  border-bottom: 1px solid rgba(169, 140, 255, .1);
+}
+
+.srow__t { font-size: 14.5px; letter-spacing: .08em; color: var(--ink); }
+.srow__n { font-size: 11.5px; color: var(--ink-4); min-width: 26px; text-align: right; }
+
+.switch {
+  width: 46px; height: 26px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid var(--glass-line);
+  position: relative;
+  transition: background var(--t-mid), border-color var(--t-mid);
+}
+.switch i {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--ink-4);
+  transition: transform var(--t-mid) var(--ease-out), background var(--t-mid);
+}
+.switch.is-on {
+  background: rgba(243, 209, 154, .22);
+  border-color: rgba(243, 209, 154, .5);
+}
+.switch.is-on i {
+  transform: translateX(20px);
+  background: var(--gold);
+  box-shadow: 0 0 10px rgba(243, 209, 154, .6);
+}
+
+.slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .12);
+  outline: none;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 10px rgba(243, 209, 154, .55);
+  cursor: pointer;
+}
+
+.settings__note {
+  margin-top: 14px;
+  font-size: 11.5px;
+  line-height: 1.85;
+  color: var(--ink-4);
+  text-align: left;
+}
+
+.settings__ok { margin-top: 16px; width: 100%; padding: 12px; }
+
+/* ============================================================
+   彩蛋弹窗
+   ============================================================ */
+.egg {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: grid;
+  place-items: center;
+  padding: 26px;
+  pointer-events: none;
+  animation: fade .4s var(--ease-soft) both;
+}
+.egg.is-out { animation: fade .6s var(--ease-soft) reverse both; }
+
+.egg__box {
+  position: relative;
+  max-width: 320px;
+  padding: 30px 26px;
+  border-radius: var(--r-lg);
+  text-align: center;
+  background: radial-gradient(ellipse at 50% 0%, rgba(48, 30, 92, .8), rgba(8, 5, 20, .92));
+  border: 1px solid rgba(243, 209, 154, .3);
+  box-shadow: 0 26px 70px -22px rgba(0, 0, 0, .95),
+              0 0 60px -18px rgba(243, 209, 154, .35);
+  animation: egg-in .7s var(--ease-out) both;
+}
+@keyframes egg-in {
+  0%   { opacity: 0; transform: scale(.86) translateY(14px); }
+  100% { opacity: 1; transform: none; }
+}
+
+.egg__glow {
+  position: absolute;
+  left: 50%; top: -30px;
+  width: 220px; height: 220px;
+  margin-left: -110px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(243, 209, 154, .3), transparent 66%);
+  filter: blur(14px);
+  pointer-events: none;
+}
+
+.egg__tag {
+  font-size: 10.5px;
+  letter-spacing: .3em;
+  color: var(--gold);
+  opacity: .85;
+}
+
+.egg__name {
+  margin-top: 8px;
+  font-family: var(--font-display);
+  font-size: 30px;
+  letter-spacing: .14em;
+  color: var(--gold-bright);
+  text-shadow: 0 0 22px rgba(243, 209, 154, .5);
+}
+
+.egg__line {
+  margin-top: 12px;
+  font-size: 13.5px;
+  line-height: 2;
+  color: var(--ink-2);
+  white-space: pre-line;
+}
+
+/* 环形迸射的星屑 */
+.egg__spark {
+  position: absolute;
+  left: 50%; top: 26px;
+  width: 3px; height: 3px;
+  margin: -1.5px;
+  border-radius: 50%;
+  background: var(--gold-bright);
+  box-shadow: 0 0 6px rgba(255, 236, 203, .9);
+  animation: spark 1.5s var(--ease-out) both;
+  animation-delay: var(--d);
+}
+@keyframes spark {
+  0%   { transform: rotate(var(--a)) translateX(0) scale(1); opacity: 0; }
+  22%  { opacity: 1; }
+  100% { transform: rotate(var(--a)) translateX(112px) scale(.2); opacity: 0; }
+}

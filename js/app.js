@@ -10,8 +10,14 @@ import { renderMood } from './views/mood.js';
 import { renderBook } from './views/book.js';
 import { renderQuest } from './views/quest.js';
 import { store } from './core/store.js';
+import { armAudio, sfx, initAudio } from './core/audio.js';
+import { openSettings } from './ui.js';
+import { nightMode, nightLine } from './core/eggs.js';
 
 const app = document.getElementById('app');
+
+/* ---------- 音频：必须等用户第一次触碰才能启动（浏览器限制） ---------- */
+armAudio();
 
 /* ---------- 星空背景 ---------- */
 const sky = new Sky(document.getElementById('sky-canvas'));
@@ -21,6 +27,8 @@ sky.start();
 if (!store.get('welcomed')) {
   store.set('welcomed', true);
   setTimeout(() => toast('星光已为你亮起'), 1400);
+} else if (nightMode()) {
+  setTimeout(() => toast(nightLine(), 3600), 900);
 }
 
 /* ---------- 轻提示 ---------- */
@@ -78,6 +86,7 @@ function showQuest() {
 }
 
 const ROUTES = {
+  settings: openSettings,
   draw:  showDraw,
   free:  showDraw,
   today: showDaily,
@@ -87,6 +96,8 @@ const ROUTES = {
 };
 
 function go(name) {
+  if (name === 'settings') { openSettings(); return; }
+  sfx('page');
   ROUTES[name]?.();
 }
 

@@ -113,6 +113,13 @@ export function renderHome(app, { onSelect } = {}) {
     <button class="foot__btn" type="button" data-action="book">
       ${ICONS.book}<span>我的记录本</span>
     </button>
+    <button class="foot__btn foot__btn--icon" type="button" data-action="settings"
+            aria-label="声音设置">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9.5v5M8 6.5v11M12 4v16M16 7.5v9M20 10v4"/>
+      </svg>
+    </button>
   </footer>
   `;
 

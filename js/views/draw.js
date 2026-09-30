@@ -10,6 +10,9 @@ import { artOf } from '../core/art-index.js';
 import { MOODS, TOPICS, drawCards, composeReading, SPREAD_POS } from '../../data/cards.js';
 import { zodiacOf } from '../../data/zodiac.js';
 import { makePoster, showPoster, posterLine } from '../core/poster.js';
+import { sfx } from '../core/audio.js';
+import { rareOf, comboOf, markFirstDraw, nightMode } from '../core/eggs.js';
+import { showEgg } from '../ui.js';
 import { store, todayKey } from '../core/store.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -152,6 +155,7 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
     const go = el.querySelector('#goShuffle');
 
     go.addEventListener('click', async () => {
+      sfx('shuffle');
       go.disabled = true;
       go.textContent = '洗牌中…';
       deck.classList.add('is-shuffling');
@@ -226,6 +230,7 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
     node.querySelector('[data-front]').innerHTML =
       renderCard(d.card, artOf(d.card.id), { uid: `-f${i}` });
 
+    sfx('flip');
     if (d.reversed) node.classList.add('is-rev');
     node.classList.add('is-up', 'is-open');
     state.flipped.add(i);
@@ -243,6 +248,7 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
     // 等最后一张翻完 + 光晕脉冲散尽，再进入解读
     setTimeout(() => {
       el.querySelector('#tapme')?.remove();
+      sfx('reveal');
       stepReading();
     }, 900);
   }
@@ -304,7 +310,32 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
         });
         await sleep(180);
       }
+      // 文字全部落下后，再放彩蛋，不打断阅读
+      await sleep(260);
+      fireEggs();
     })();
+
+    /* ---------- 彩蛋 ---------- */
+    function fireEggs() {
+      // 组合优先于单张稀有牌
+      const combo = comboOf(state.draws);
+      if (combo) {
+        sfx('rare');
+        showEgg({ tag: '隐 藏 组 合', name: '✦', line: combo.line });
+        return;
+      }
+      const rareId = state.draws.map((d) => d.card.id).find((id) => rareOf(id));
+      const rare = rareId && rareOf(rareId);
+      if (rare) {
+        sfx('rare');
+        showEgg({ tag: '稀 有 之 牌', name: rare.name, line: rare.line });
+        return;
+      }
+      const first = markFirstDraw(state.draws.map((d) => d.card.id));
+      if (first) {
+        showEgg({ tag: '第 一 次', name: '初 次 抽 牌', line: first });
+      }
+    }
 
     /* 保存 */
     el.querySelector('#save').addEventListener('click', () => {
@@ -320,6 +351,7 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
         // 存下完整文案，记录本回看时不必重新拼装
         reading: { bridge: reading.bridge, tail: z ? `${z.name}：${z.line}` : reading.tail },
       });
+      sfx('save');
       const btn = el.querySelector('#save');
       btn.textContent = '已收好 ✓';
       btn.disabled = true;

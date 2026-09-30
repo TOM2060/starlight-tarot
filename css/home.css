@@ -300,3 +300,16 @@
 .entry.is-done .entry__desc { color: var(--gold); }
 .entry.is-todo .entry__ico { filter: drop-shadow(0 0 10px rgba(243, 209, 154, .55)); }
 .entry.is-todo::after { opacity: 1; }
+
+/* 底部：记录本 + 声音设置 */
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.foot__btn--icon {
+  padding: 8px 11px;
+}
+.foot__btn--icon svg { width: 15px; height: 15px; }

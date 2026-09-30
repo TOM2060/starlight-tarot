@@ -9,6 +9,7 @@ import { artOf } from '../core/art-index.js';
 import { getCard } from '../../data/cards.js';
 import { CHAPTERS, levelOf, ALL_LEVELS } from '../../data/levels.js';
 import { store } from '../core/store.js';
+import { sfx } from '../core/audio.js';
 
 const KEY = 'quest.cleared';
 
@@ -118,6 +119,7 @@ export function renderQuest(root, { onBack, onToast, startAt } = {}) {
       if (!b || picked !== null) return;
       picked = Number(b.dataset.i);
       const right = lv.options[picked].ok;
+      sfx(right ? 'right' : 'wrong');
 
       optsEl.querySelectorAll('.opt').forEach((o, i) => {
         o.disabled = true;
