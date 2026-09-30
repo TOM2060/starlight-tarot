@@ -169,8 +169,14 @@ export function renderHome(app, { onSelect } = {}) {
     });
   }
 
-  app.querySelectorAll('.entry').forEach((btn) => {
+  /*
+   * 统一绑定所有 data-action 按钮。
+   * 之前是 querySelectorAll('.entry') + querySelector('.foot__btn')，
+   * 而底部现在有三个 .foot__btn（记录本 / 图鉴 / 声音），
+   * querySelector 只拿到第一个——图鉴那个从来没绑上，点不开。
+   */
+  app.querySelectorAll('[data-action]').forEach((btn) => {
+    if (btn.dataset.action === 'sound') return;   // 声音有自己的按下/长按逻辑
     btn.addEventListener('click', () => onSelect?.(btn.dataset.action));
   });
-  app.querySelector('.foot__btn')?.addEventListener('click', () => onSelect?.('book'));
 }
