@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>牌面巡检</title>
+<style>
+  body { font: 12px/1.55 ui-monospace, Menlo, monospace; background: #06040f; color: #d8d0ea; margin: 0; padding: 18px; }
+  #out { white-space: pre-wrap; }
+  .ok { color: #7fd6a0; } .bad { color: #ff8080; }
+  #gallery { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 14px; }
+  #gallery figure { margin: 0; }
+  #gallery canvas { width: 54px; height: 95px; background: #000; display: block; }
+  #gallery figcaption { font-size: 8px; text-align: center; color: #6d6390; }
+  .badcard { outline: 2px solid #ff6060; outline-offset: -2px; }
+</style>
+</head>
+<body>
+<div id="out">巡检中…</div>
+<div id="gallery"></div>
+
+<script type="module">
+import { CARDS } from '../data/cards.js';
+import { artOf } from '../js/core/art-index.js';
+import { MAJOR_ART } from '../js/core/major-art.js';
+
+/*
+ * 反向验证开关：?simulate=oldbug 时改用旧代码的 MAJOR_ART 查表，
+ * 用来证明巡检确实能抓到本次修复的那个 bug。
+ */
+const SIMULATE_OLDBUG = new URLSearchParams(location.search).get('simulate') === 'oldbug';
+const pickArt = SIMULATE_OLDBUG ? (id) => MAJOR_ART[id] : artOf;
+import { renderCard } from '../js/core/card-art.js';
+
+const W = 120, H = 210;
+/** 画面内容判定：与"空白版"的像素差异比例下限 */
+const MIN_DIFF = 0.005;          // 0.5%
+
+const out = document.getElementById('out');
+const gal = document.getElementById('gallery');
+
+const toURL = (svg) => 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+const load = (src) => new Promise((res, rej) => {
+  const img = new Image();
+  img.onload = () => res(img);
+  img.onerror = () => rej(new Error('load fail'));
+  img.src = src;
+});
+
+/** 渲染一张 SVG 到 canvas */
+async function paint(svg) {
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const img = await load(toURL(svg));
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  ctx.fillStyle = '#06040f';
+  ctx.fillRect(0, 0, W, H);
+  ctx.drawImage(img, 0, 0, W, H);
+  return cv;
+}
+
+/**
+ * 比较两张画布的差异占比。
+ * 与"空白版"完全一致 ⇒ 画面上没有任何内容。
+ * 这比"亮像素占比"可靠得多：边框、牌名、罗马数字都很亮，
+ * 靠亮度根本区分不出空白牌和正常牌。
+ */
+function diffRatio(a, b) {
+  const da = a.getContext('2d').getImageData(0, 0, W, H).data;
+  const db = b.getContext('2d').getImageData(0, 0, W, H).data;
+  let diff = 0;
+  for (let i = 0; i < da.length; i += 4) {
+    if (Math.abs(da[i] - db[i]) > 10
+     || Math.abs(da[i + 1] - db[i + 1]) > 10
+     || Math.abs(da[i + 2] - db[i + 2]) > 10) diff++;
+  }
+  return diff / (W * H);
+}
+
+/* ---------- 结构检查：SVG 必须是合法 XML ---------- */
+function xmlCheck(svg) {
+  const doc = new DOMParser().parseFromString(svg, 'image/svg+xml');
+  const err = doc.querySelector('parsererror');
+  if (!err) return '';
+  return 'XML非法: ' + (err.textContent || '').trim().split('\n')[0].slice(0, 90);
+}
+
+/* 空白基准：art 函数传 null 时的样子 */
+const BLANK = await paint(renderCard(CARDS[0], null, { uid: '-blank' }));
+
+const rows = [];
+for (const c of CARDS) {
+  const fn = pickArt(c.id);
+  const fig = document.createElement('figure');
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  fig.appendChild(cv);
+  const cap = document.createElement('figcaption');
+  cap.textContent = c.name;
+  fig.appendChild(cap);
+  gal.appendChild(fig);
+
+  let diff = 0, err = '', junk = '';
+  const svg = renderCard(c, fn, { uid: `-a${c.id}` });
+  if (!fn) junk = '无art函数';
+  else if (/undefined|NaN|\[object/.test(svg)) junk = '含undefined/NaN';
+  else junk = xmlCheck(svg);
+
+  try {
+    const real = await paint(svg);
+    cv.getContext('2d').drawImage(real, 0, 0);
+    diff = diffRatio(real, BLANK);
+  } catch (e) { err = e.message; }
+
+  const blank = !junk && diff < MIN_DIFF;
+  rows.push({
+    id: c.id, name: c.name, suit: c.suit, diff, ok: !blank && !junk,
+    why: junk || (blank ? '与空白版无差异' : ''), err, node: fig,
+  });
+}
+
+const bad = rows.filter((r) => !r.ok);
+bad.forEach((r) => r.node?.classList.add('badcard'));
+
+/* 自检：空白版与自身比较必须为 0，说明检测器对"完全空白"零容忍 */
+const DETECTOR_OK = diffRatio(BLANK, BLANK) === 0;
+
+const L = [];
+if (SIMULATE_OLDBUG) L.push('【反向验证模式：故意使用修复前的 MAJOR_ART 查表】');
+L.push(`巡检牌数：${rows.length}    判定：XML合法 且 与空白版像素差异 >= ${(MIN_DIFF * 100).toFixed(1)}%`);
+L.push(DETECTOR_OK
+  ? '自检通过：检测器对"完全空白"零容忍，判定可信'
+  : '自检失败：检测器无法识别完全空白，结果不可信');
+L.push(`结果：正常 ${rows.length - bad.length} 张 / 异常 ${bad.length} 张`);
+L.push('');
+L.push('--- 按内容密度升序（最稀疏在前）---');
+rows.slice().sort((a, b) => a.diff - b.diff).forEach((r) => {
+  L.push(`${r.ok ? '✓' : '✗'} ${r.name.padEnd(5, '　')} ${r.id.padEnd(11)} 差异 ${(r.diff * 100).toFixed(2).padStart(6)}%  ${r.why || r.err}`);
+});
+
+out.textContent = L.join('\n');
+out.className = bad.length ? 'bad' : 'ok';
+document.title = (bad.length || !DETECTOR_OK) ? `FAIL:${bad.length}` : `PASS:${rows.length}`;
+</script>
+</body>
+</html>

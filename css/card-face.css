@@ -1,0 +1,55 @@
+/* ============================================================
+   星语 · Starlight Tarot — 牌面文字与容器样式
+   （作用在 SVG 内部的 <text> 上）
+   ============================================================ */
+
+.cardface {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+}
+
+.cardface .cf-num {
+  font-size: 7px;
+  fill: #f3d19a;
+  letter-spacing: 1.4px;
+  opacity: .92;
+}
+
+.cardface .cf-name {
+  font-size: 10.5px;
+  fill: #f5f1ff;
+  letter-spacing: 2px;
+}
+
+.cardface .cf-en {
+  font-size: 3.4px;
+  fill: #8a7db2;
+  letter-spacing: .75px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.cardface .cf-glyph {
+  font-size: 5.5px;
+  fill: #f3d19a;
+  letter-spacing: 1px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---------- 牌面外层容器 ---------- */
+.cardwrap {
+  position: relative;
+  border-radius: 11px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(243, 209, 154, .22),
+    0 16px 40px -16px rgba(0, 0, 0, .9),
+    0 0 46px -18px rgba(139, 108, 255, .55);
+  transition: transform var(--t-mid) var(--ease-out),
+              box-shadow var(--t-mid) var(--ease-out);
+}
+
+.cardwrap--rev { transform: rotate(180deg); }
+.cardwrap--rev .cardface { transform: rotate(180deg); }

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小牌样张 · 星语</title>
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/sky.css">
+<link rel="stylesheet" href="../css/card-face.css">
+<style>
+  .stage { padding: 26px 14px 36px; gap: 18px; }
+  .page-title { font-size: 12px; letter-spacing: .3em; color: var(--ink-3); text-align: center; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 12px; width: 100%; max-width: 420px; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .cell .cardwrap { width: 100%; }
+  .cell__cap { font-size: 11.5px; letter-spacing: .12em; color: var(--ink-2); text-align: center; }
+  .cell__kw { font-size: 9.5px; letter-spacing: .1em; color: var(--ink-4); }
+</style>
+</head>
+<body>
+  <div class="sky" aria-hidden="true">
+    <div class="sky__nebula sky__nebula--1"></div>
+    <div class="sky__nebula sky__nebula--2"></div>
+    <canvas class="sky__canvas" id="sky-canvas"></canvas>
+    <div class="sky__vignette"></div>
+  </div>
+
+  <main class="stage">
+    <p class="page-title">小 阿 尔 克 那 · 第 一 批 样 张</p>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <script type="module">
+    import { Sky } from '../js/core/sky.js';
+    import { renderCard } from '../js/core/card-art.js';
+    import { MINOR_ART } from '../js/core/minor-art.js';
+    import { MINOR } from '../data/minor.js';
+
+    new Sky(document.getElementById('sky-canvas')).start();
+
+    const q = new URLSearchParams(location.search);
+    const suit = q.get('suit');
+    const list = suit ? MINOR.filter((c) => c.suit === suit) : MINOR;
+    const showKw = q.get('kw') === '1';
+    document.getElementById('grid').innerHTML = list.map((c, i) => `
+      <div class="cell">
+        <div class="cardwrap">${renderCard(c, MINOR_ART[c.id], { uid: '-m' + i })}</div>
+        <p class="cell__cap">${c.name}</p>
+        ${showKw ? `<p class="cell__kw">${c.upright.kw.slice(0, 3).join(' · ')}</p>` : ''}
+      </div>
+    `).join('');
+  </script>
+</body>
+</html>

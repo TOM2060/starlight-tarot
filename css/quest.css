@@ -1,0 +1,322 @@
+/* ============================================================
+   星语 · Starlight Tarot — 闯关地图 / 答题
+   ============================================================ */
+
+.quest {
+  gap: 22px;
+  max-width: 460px;
+  width: 100%;
+}
+
+/* ---------- 顶部进度 ---------- */
+.quest__head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.quest__num {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.quest__num b {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 400;
+  background: linear-gradient(170deg, var(--gold-bright), var(--gold) 55%, #b98f52);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.quest__num span { font-size: 12px; color: var(--ink-4); }
+
+.quest__hint {
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--ink-3);
+  text-align: left;
+}
+
+/* ---------- 章节 ---------- */
+.chapter { width: 100%; }
+
+.chapter__h {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-bottom: 16px;
+}
+
+.chapter__h b {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: .1em;
+  color: var(--tint);
+}
+
+.chapter__h span {
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: .12em;
+  color: var(--ink);
+}
+
+.chapter__h em {
+  font-size: 10.5px;
+  font-style: normal;
+  letter-spacing: .1em;
+  color: var(--ink-4);
+}
+
+/* ---------- 星轨 ---------- */
+.chapter__track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 18px 10px;
+  padding: 2px 0 4px;
+}
+
+.chapter__line {
+  position: absolute;
+  left: 8%; right: 8%;
+  top: 21px;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent, color-mix(in srgb, var(--tint) 40%, transparent) 12%,
+    color-mix(in srgb, var(--tint) 40%, transparent) 88%, transparent);
+  pointer-events: none;
+}
+
+.node {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.node__dot {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--ink-4);
+  background: #120b2e;
+  border: 1px solid var(--glass-line);
+  box-shadow: 0 4px 14px -6px rgba(0, 0, 0, .9);
+  transition: transform var(--t-fast) var(--ease-out),
+              border-color var(--t-fast), color var(--t-fast);
+}
+
+.node__tip {
+  font-size: 9px;
+  letter-spacing: .06em;
+  color: var(--ink-4);
+  opacity: 0;
+  transition: opacity var(--t-fast);
+}
+
+.node.is-open { cursor: pointer; }
+.node.is-open .node__dot { color: var(--tint); border-color: color-mix(in srgb, var(--tint) 34%, transparent); }
+.node.is-open:active .node__dot { transform: scale(.9); }
+.node.is-open:active .node__tip,
+.node:hover .node__tip { opacity: 1; }
+
+.node.is-done .node__dot {
+  color: #1a1038;
+  background: linear-gradient(160deg, #ffeccb, #f0c888 60%, #c99a55);
+  border-color: rgba(243, 209, 154, .7);
+  box-shadow: 0 0 18px -4px rgba(243, 209, 154, .55);
+}
+.node.is-done .node__tip { color: var(--gold); opacity: 1; }
+
+.node.is-next .node__dot {
+  animation: node-pulse 2.4s var(--ease-soft) infinite;
+  border-color: var(--tint);
+}
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--tint) 45%, transparent); }
+  60%      { box-shadow: 0 0 0 9px transparent; }
+}
+
+.node.is-locked { cursor: not-allowed; }
+.node.is-locked .node__dot { opacity: .45; }
+
+/* ============================================================
+   答题页
+   ============================================================ */
+.quiz {
+  gap: 10px;
+  max-width: 440px;
+}
+
+.quiz__art {
+  width: clamp(108px, 32vw, 136px);
+  margin-bottom: 2px;
+}
+
+.quiz__art .cardface {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px rgba(243, 209, 154, .28),
+    0 16px 38px -18px rgba(0, 0, 0, .95),
+    0 0 44px -16px rgba(139, 108, 255, .5);
+}
+
+.quiz__name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  letter-spacing: .16em;
+  color: var(--gold);
+}
+
+.quiz__scene {
+  font-size: 14px;
+  line-height: 1.95;
+  color: var(--ink-2);
+  max-width: 20em;
+  margin: 2px 0 0;
+}
+
+.quiz__q {
+  margin: 10px 0 4px;
+  font-size: 12px;
+  letter-spacing: .2em;
+  color: var(--ink-4);
+}
+
+/* ---------- 选项 ---------- */
+.quiz__opts {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+}
+
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: var(--r-md);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  text-align: left;
+  transition: transform var(--t-fast) var(--ease-out),
+              border-color var(--t-fast), background var(--t-fast);
+}
+
+.opt:active { transform: scale(.975); }
+
+.opt__k {
+  width: 22px; height: 22px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 11px;
+  color: var(--ink-4);
+  border: 1px solid var(--glass-line);
+  transition: all var(--t-fast);
+}
+
+.opt__t {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.opt.is-right {
+  border-color: rgba(243, 209, 154, .65);
+  background: rgba(48, 30, 92, .5);
+}
+.opt.is-right .opt__k { color: #1a1038; background: var(--gold); border-color: var(--gold); }
+
+.opt.is-wrong {
+  border-color: rgba(150, 140, 200, .3);
+  opacity: .45;
+  animation: shake .4s var(--ease-soft);
+}
+.opt.is-wrong .opt__k { border-color: rgba(150, 140, 200, .4); }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  60% { transform: translateX(4px); }
+}
+
+.opt:disabled { cursor: default; }
+
+/* ---------- 判定结果 ---------- */
+.quiz__result {
+  width: 100%;
+  margin-top: 4px;
+  padding: 0 2px;
+  animation: rise .5s var(--ease-out) both;
+}
+
+.quiz__result:empty { display: none; }
+
+.res__title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: .12em;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.res__title svg { width: 15px; height: 15px; }
+
+.quiz__result.is-hint .res__title { color: var(--violet-soft); }
+
+.res__text {
+  font-size: 13.5px;
+  line-height: 1.95;
+  color: var(--ink-2);
+  text-align: left;
+}
+
+.res__face {
+  margin-top: 9px;
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--gold);
+  opacity: .8;
+  text-align: left;
+}
+
+.res__hint {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--ink-4);
+  text-align: left;
+}
+.res__hint b { color: var(--violet-soft); font-weight: 400; }
+
+.quiz__result .act { margin-top: 16px; width: min(280px, 100%); }

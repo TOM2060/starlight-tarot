@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#06040f">
+<meta name="apple-mobile-web-app-title" content="星语">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="星语 · Starlight Tarot — 属于你的星空塔罗">
+<title>星语 · Starlight Tarot</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/sky.css">
+<link rel="stylesheet" href="css/card-face.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/draw.css">
+<link rel="stylesheet" href="css/book.css">
+<link rel="stylesheet" href="css/daily.css">
+<link rel="stylesheet" href="css/quest.css">
+<link rel="stylesheet" href="css/poster.css">
+</head>
+<body>
+  <!-- 星空背景层 -->
+  <div class="sky" aria-hidden="true">
+    <div class="sky__nebula sky__nebula--1"></div>
+    <div class="sky__nebula sky__nebula--2"></div>
+    <div class="sky__nebula sky__nebula--3"></div>
+    <div class="sky__horizon"></div>
+    <canvas class="sky__canvas" id="sky-canvas"></canvas>
+    <div class="sky__vignette"></div>
+    <div class="sky__grain"></div>
+  </div>
+
+  <!-- 页面内容挂载点 -->
+  <main class="stage" id="app"></main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

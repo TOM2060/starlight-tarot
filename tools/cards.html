@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>牌面预览 · 星语</title>
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/sky.css">
+<link rel="stylesheet" href="../css/card-face.css">
+<style>
+  .stage { padding: 28px 16px 40px; gap: 20px; }
+  .page-title {
+    font-size: 13px; letter-spacing: .3em; color: var(--ink-3);
+    text-align: center;
+  }
+  .grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 10px;
+    width: 100%; max-width: 520px;
+  }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+  .cell .cardwrap { width: 100%; }
+  .cell__cap { font-size: 10.5px; letter-spacing: .12em; color: var(--ink-3); }
+  .cell__cap em { font-style: normal; color: var(--ink-4); font-size: 9px; }
+  @media (min-width: 560px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+</style>
+</head>
+<body>
+  <div class="sky" aria-hidden="true">
+    <div class="sky__nebula sky__nebula--1"></div>
+    <div class="sky__nebula sky__nebula--2"></div>
+    <div class="sky__horizon"></div>
+    <canvas class="sky__canvas" id="sky-canvas"></canvas>
+    <div class="sky__vignette"></div>
+  </div>
+
+  <main class="stage" id="app">
+    <p class="page-title">大 阿 尔 克 那 · 牌 面 预 览</p>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <script type="module">
+    import { Sky } from '../js/core/sky.js';
+    import { renderCard } from '../js/core/card-art.js';
+    import { MAJOR_ART } from '../js/core/major-art.js';
+    import { MAJOR } from '../data/major.js';
+
+    new Sky(document.getElementById('sky-canvas')).start();
+
+    const grid = document.getElementById('grid');
+    grid.innerHTML = MAJOR.map((c) => `
+      <div class="cell">
+        <div class="cardwrap">${renderCard(c, MAJOR_ART[c.id])}</div>
+        <p class="cell__cap">${c.name} <em>${c.upright.kw.slice(0, 2).join(' · ')}</em></p>
+      </div>
+    `).join('');
+  </script>
+</body>
+</html>

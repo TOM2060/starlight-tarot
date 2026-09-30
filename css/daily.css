@@ -1,0 +1,110 @@
+/* ============================================================
+   星语 · Starlight Tarot — 每日一牌
+   ============================================================ */
+
+.daily {
+  gap: 14px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.daily__date {
+  font-size: 11px;
+  letter-spacing: .28em;
+  color: var(--ink-4);
+}
+
+/* ---------- 未翻开：牌背 + 呼吸 ---------- */
+.daily__card {
+  position: relative;
+  width: clamp(124px, 36vw, 158px);
+  border-radius: 12px;
+  transition: transform var(--t-slow) var(--ease-out);
+}
+
+.daily__card.is-revealed {
+  animation: card-rise .9s var(--ease-out) both;
+}
+
+@keyframes card-rise {
+  0%   { opacity: 0; transform: translateY(16px) scale(.94); }
+  100% { opacity: 1; transform: none; }
+}
+
+.daily__back {
+  position: relative;
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+  animation: breathe 3.1s var(--ease-soft) infinite;
+  box-shadow:
+    0 0 0 1px rgba(243, 209, 154, .26),
+    0 18px 44px -20px rgba(0, 0, 0, .95),
+    0 0 52px -16px rgba(139, 108, 255, .5);
+  transition: transform var(--t-fast) var(--ease-out);
+}
+
+.daily__back:active { transform: scale(.95); }
+
+.daily__back .back__art {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.daily__hint {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.95;
+  color: var(--ink-4);
+  letter-spacing: .06em;
+}
+
+/* ---------- 已翻开 ---------- */
+.daily__card.is-revealed .cardface {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px rgba(243, 209, 154, .3),
+    0 20px 48px -20px rgba(0, 0, 0, .95),
+    0 0 56px -18px rgba(243, 209, 154, .45);
+}
+
+.daily__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.daily__name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: .12em;
+  color: var(--ink);
+}
+
+.daily__kw {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: -2px;
+}
+
+.daily__kw span {
+  font-size: 11px;
+  letter-spacing: .1em;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: rgba(139, 108, 255, .16);
+  color: var(--violet-soft);
+}
+
+.daily__text {
+  text-align: left;
+  padding: 0 4px;
+}

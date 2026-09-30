@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>海报预览 · 星语</title>
+<link rel="stylesheet" href="../css/base.css">
+<style>
+  body { margin: 0; padding: 18px; background: #06040f; font-family: -apple-system, "PingFang SC", sans-serif; }
+  .grid { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  figure { margin: 0; }
+  img { width: 300px; height: 400px; display: block; border-radius: 8px; box-shadow: 0 10px 40px -12px #000; }
+  figcaption { font-size: 11px; color: #8a7db2; text-align: center; margin-top: 6px; letter-spacing: .1em; }
+  #log { color: #f3d19a; font-size: 12px; text-align: center; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<div id="log">生成中…</div>
+<div class="grid" id="g"></div>
+<script type="module">
+import { CARDS } from '../data/cards.js';
+import { makePoster } from '../js/core/poster.js';
+
+const pick = (id) => CARDS.find((c) => c.id === id);
+const jobs = [
+  ['major-19', false, '太阳 · 正位'],
+  ['major-13', true,  '死神 · 逆位'],
+  ['cups-10',  false, '圣杯十 · 正位'],
+];
+
+const g = document.getElementById('g');
+const log = document.getElementById('log');
+const errs = [];
+for (const [id, rev, label] of jobs) {
+  try {
+    const url = await makePoster(pick(id), rev, '2026.09.30', '夜色不是黑暗，是星星正在赶路。');
+    g.insertAdjacentHTML('beforeend',
+      `<figure><img src="${url}" alt="${label}"><figcaption>${label}</figcaption></figure>`);
+  } catch (e) { errs.push(label + ': ' + e.message); }
+}
+log.textContent = errs.length ? '失败: ' + errs.join(' | ') : `已生成 ${jobs.length} 张`;
+log.style.color = errs.length ? '#ff8080' : '#7fd6a0';
+document.title = errs.length ? 'FAIL' : 'PASS';
+</script>
+</body>
+</html>

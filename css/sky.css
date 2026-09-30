@@ -1,0 +1,129 @@
+/* ============================================================
+   星语 · Starlight Tarot — 星空背景层
+   星云 / 地平线 / 粒子 / 暗角 / 颗粒
+   ============================================================ */
+
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(140% 100% at 50% 0%,   #1a1046 0%, transparent 58%),
+    radial-gradient(120% 90%  at 15% 100%, #16093c 0%, transparent 60%),
+    linear-gradient(178deg, var(--void-1) 0%, var(--void-0) 62%, #04030b 100%);
+}
+
+/* ------------------------------------------------------------
+   星云：三团不同色温的柔光，缓慢呼吸 + 漂移
+   ------------------------------------------------------------ */
+.sky__nebula {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: .5;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+
+.sky__nebula--1 {
+  width: 85vmax; height: 60vmax;
+  top: -26vmax; left: -18vmax;
+  background: radial-gradient(circle at 50% 50%,
+              rgba(122, 82, 255, .50) 0%,
+              rgba(78, 46, 168, .24) 42%,
+              transparent 70%);
+  animation: nebula-drift-a 34s var(--ease-soft) infinite;
+}
+
+.sky__nebula--2 {
+  width: 70vmax; height: 52vmax;
+  top: 26vmax; right: -24vmax;
+  background: radial-gradient(circle at 50% 50%,
+              rgba(199, 125, 255, .38) 0%,
+              rgba(126, 60, 190, .18) 46%,
+              transparent 72%);
+  animation: nebula-drift-b 42s var(--ease-soft) infinite;
+}
+
+.sky__nebula--3 {
+  width: 60vmax; height: 44vmax;
+  bottom: -16vmax; left: 10vmax;
+  background: radial-gradient(circle at 50% 50%,
+              rgba(88, 180, 255, .24) 0%,
+              rgba(60, 90, 200, .12) 48%,
+              transparent 74%);
+  animation: nebula-drift-c 50s var(--ease-soft) infinite;
+}
+
+@keyframes nebula-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1);        opacity: .42; }
+  50%      { transform: translate3d(5vmax, 3vmax, 0) scale(1.14); opacity: .62; }
+}
+@keyframes nebula-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.08);   opacity: .34; }
+  50%      { transform: translate3d(-6vmax, 4vmax, 0) scale(1); opacity: .56; }
+}
+@keyframes nebula-drift-c {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1);        opacity: .28; }
+  50%      { transform: translate3d(4vmax, -3vmax, 0) scale(1.2); opacity: .44; }
+}
+
+/* ------------------------------------------------------------
+   地平线：底部一抹极淡的暖光，给画面"落地感"
+   ------------------------------------------------------------ */
+.sky__horizon {
+  position: absolute;
+  left: -10%; right: -10%;
+  bottom: -14vh;
+  height: 46vh;
+  background: radial-gradient(ellipse 60% 100% at 50% 100%,
+              rgba(243, 209, 154, .13) 0%,
+              rgba(139, 108, 255, .07) 44%,
+              transparent 72%);
+  filter: blur(30px);
+  animation: glow-pulse 12s var(--ease-soft) infinite;
+}
+
+/* ------------------------------------------------------------
+   粒子画布
+   ------------------------------------------------------------ */
+.sky__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ------------------------------------------------------------
+   暗角：把注意力收到画面中心
+   ------------------------------------------------------------ */
+.sky__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 82% 68% at 50% 42%,
+              transparent 40%,
+              rgba(4, 3, 11, .42) 78%,
+              rgba(4, 3, 11, .76) 100%);
+}
+
+/* ------------------------------------------------------------
+   颗粒：极淡的胶片噪点，消除渐变的塑料感
+   ------------------------------------------------------------ */
+.sky__grain {
+  position: absolute;
+  inset: -50%;
+  opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 6s steps(6) infinite;
+}
+
+@keyframes grain-shift {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-3%, 2%); }
+  40%  { transform: translate(2%, -3%); }
+  60%  { transform: translate(-2%, -2%); }
+  80%  { transform: translate(3%, 1%); }
+  100% { transform: translate(0, 0); }
+}

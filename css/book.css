@@ -1,0 +1,288 @@
+/* ============================================================
+   星语 · Starlight Tarot — 记录本 / 签到
+   ============================================================ */
+
+.book {
+  gap: 18px;
+  max-width: 460px;
+  width: 100%;
+}
+
+/* ---------- 概览数字 ---------- */
+.book__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 13px 6px 11px;
+  border-radius: var(--r-md);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.stat b {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 400;
+  background: linear-gradient(170deg, var(--gold-bright), var(--gold) 55%, #b98f52);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.stat span {
+  font-size: 10.5px;
+  letter-spacing: .14em;
+  color: var(--ink-4);
+}
+
+/* ---------- 分区 ---------- */
+.book__sec {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.book__h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: .16em;
+  color: var(--ink-2);
+}
+
+.book__h::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(169, 140, 255, .22), transparent);
+}
+
+.book__empty {
+  padding: 26px 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 2;
+  color: var(--ink-4);
+}
+
+/* ---------- 28 天热力格 ---------- */
+.cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  padding: 14px;
+  border-radius: var(--r-md);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.cal__d {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .05);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .04) inset;
+}
+
+/* 6 种心情各一色，低饱和 */
+.cal__d.is-on {
+  background: hsl(calc(250 - var(--i) * 34) 58% 62% / .85);
+  box-shadow: 0 0 10px -2px hsl(calc(250 - var(--i) * 34) 70% 62% / .7);
+}
+
+/* ---------- 历史行 ---------- */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 11px 13px;
+  border-radius: var(--r-md);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  text-align: left;
+  transition: transform var(--t-fast) var(--ease-out), border-color var(--t-fast);
+  animation: rise .45s var(--ease-out) both;
+}
+
+.row:active { transform: scale(.98); border-color: var(--glass-line-2); }
+
+.row__cards { display: flex; gap: 5px; flex-shrink: 0; }
+
+.row__art {
+  width: 32px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(243, 209, 154, .26);
+}
+.row__art .cardface { width: 100%; }
+.row__art.is-rev { transform: rotate(180deg); }
+.row__art.is-rev .cardface { transform: rotate(180deg); }
+
+.row__info { min-width: 0; flex: 1; }
+
+.row__names {
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  letter-spacing: .08em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row__meta {
+  margin-top: 2px;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: var(--ink-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   心情签到页
+   ============================================================ */
+.mood {
+  width: 100%;
+  max-width: 420px;
+}
+
+.mood__done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.mood__ring {
+  width: 92px; height: 92px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 30px;
+  color: var(--gold);
+  border: 1px solid rgba(243, 209, 154, .34);
+  background: radial-gradient(circle, rgba(243, 209, 154, .16), transparent 68%);
+  box-shadow: 0 0 34px -8px rgba(243, 209, 154, .5);
+}
+
+/* ============================================================
+   星座设置（可选）
+   ============================================================ */
+.zod {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  border-radius: var(--r-md);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.zod__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.zod__name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: .12em;
+  color: var(--gold);
+}
+
+.zod__edit {
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-line);
+  font-size: 11px;
+  letter-spacing: .12em;
+  color: var(--ink-4);
+}
+.zod__edit:active { color: var(--gold); }
+
+.zod__line,
+.zod__rl {
+  font-size: 13px;
+  line-height: 1.95;
+  color: var(--ink-2);
+  text-align: left;
+}
+
+.zod__hint {
+  font-size: 12.5px;
+  line-height: 1.9;
+  color: var(--ink-4);
+  text-align: left;
+}
+
+.wheel {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.wheel::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex-shrink: 0;
+  min-width: 44px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-line);
+  font-size: 12.5px;
+  letter-spacing: .06em;
+  color: var(--ink-3);
+  transition: all var(--t-fast) var(--ease-out);
+}
+.chip:active { transform: scale(.93); }
+.chip.is-on {
+  border-color: rgba(243, 209, 154, .55);
+  background: rgba(243, 209, 154, .14);
+  color: var(--gold);
+}
+
+.zod__res {
+  min-height: 62px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 11px 13px;
+  border-radius: var(--r-sm);
+  background: rgba(10, 6, 28, .42);
+  border: 1px solid rgba(169, 140, 255, .12);
+}
+
+.zod__nm {
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: .1em;
+  color: var(--violet-soft);
+}

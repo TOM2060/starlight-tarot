@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>翻牌方案对比 · 星语</title>
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/sky.css">
+<link rel="stylesheet" href="../css/card-face.css">
+<link rel="stylesheet" href="../css/home.css">
+<link rel="stylesheet" href="../css/draw.css">
+<style>
+  .stage { padding: 20px 16px 30px; gap: 22px; }
+  .demos { display: flex; flex-direction: column; gap: 26px; width: 100%; max-width: 360px; }
+  .demo { display: flex; gap: 16px; align-items: center; }
+  .demo__txt { flex: 1; text-align: left; }
+  .demo__k { font-size: 11px; letter-spacing: .2em; color: var(--gold); }
+  .demo__n { font-family: var(--font-display); font-size: 16px; letter-spacing: .1em; margin: 3px 0 5px; }
+  .demo__d { font-size: 11.5px; line-height: 1.75; color: var(--ink-4); }
+
+  /* ============ 通用舞台 ============ */
+  .stage3 { position: relative; width: 108px; aspect-ratio: 120 / 210; flex-shrink: 0; perspective: 1200px; }
+  .stage3__front { position: absolute; inset: 0; border-radius: 10px; overflow: hidden; }
+  .stage3__front .cardface { width: 100%; height: 100%; }
+
+  /* ============ A · 光扫显影 ============ */
+  .a__cover { position: absolute; inset: 0; border-radius: 10px; overflow: hidden; }
+  .a__cover .back__art { width: 100%; height: 100%; border-radius: 10px; box-shadow: none; }
+  .a__beam {
+    position: absolute; top: -6%; bottom: -6%; width: 38%;
+    background: linear-gradient(90deg, transparent, rgba(255,236,203,.92) 42%, rgba(160,130,255,.65) 62%, transparent);
+    filter: blur(5px);
+    opacity: 0; left: -38%;
+  }
+  .a.is-open .a__cover { animation: aSweep .95s cubic-bezier(.4,0,.2,1) forwards; }
+  .a.is-open .a__beam    { animation: aBeam .95s cubic-bezier(.4,0,.2,1) forwards; }
+  @keyframes aSweep { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 0 0 100%); } }
+  @keyframes aBeam  { 0% { left: -38%; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+
+  /* ============ B · 星屑消散 ============ */
+  .b__cover { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(5, 1fr); }
+  .b__cell { position: relative; overflow: hidden; }
+  .b__cell .back__art {
+    position: absolute; width: 300%; height: 500%; border-radius: 0; box-shadow: none;
+    left: calc(var(--cx) * -33.3333%); top: calc(var(--cy) * -20%);
+  }
+  .b.is-open .b__cell { animation: bBurst .82s cubic-bezier(.2,.7,.3,1) forwards; }
+  @keyframes bBurst {
+    0%   { transform: none; opacity: 1; filter: brightness(1); }
+    22%  { transform: translate(0,0) scale(1.02); filter: brightness(1.7); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rr)) scale(.2); opacity: 0; }
+  }
+  .b.is-open .stage3__front { animation: bReveal .82s .16s cubic-bezier(.2,.7,.3,1) both; }
+  @keyframes bReveal {
+    0%   { opacity: 0; filter: blur(14px) brightness(2.4); transform: scale(1.1); }
+    100% { opacity: 1; filter: blur(0) brightness(1); transform: scale(1); }
+  }
+
+  /* ============ C · 3D 翻转 + 高光 ============ */
+  .c__inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .88s cubic-bezier(.34,1.2,.4,1); }
+  .c.is-open .c__inner { transform: rotateY(180deg); }
+  .c__face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 10px; overflow: hidden; }
+  .c__face--back .back__art { width: 100%; height: 100%; border-radius: 10px; box-shadow: none; }
+  .c__face--front { transform: rotateY(180deg); }
+  .c__glare {
+    position: absolute; inset: 0; pointer-events: none; z-index: 3;
+    background: linear-gradient(105deg, transparent 32%, rgba(255,255,255,.5) 46%, rgba(255,236,203,.85) 50%, rgba(255,255,255,.42) 54%, transparent 68%);
+    opacity: 0; mix-blend-mode: overlay;
+  }
+  .c.is-open .c__glare { animation: cGlare .88s cubic-bezier(.4,0,.2,1) forwards; }
+  @keyframes cGlare { 0% { opacity: 0; transform: translateX(-58%); } 45% { opacity: 1; } 100% { opacity: 0; transform: translateX(58%); } }
+  /* 截图用：把动画定格在任意进度 */
+  body.freeze [data-fx] * { animation-play-state: paused !important; animation-delay: var(--fd, 0s) !important; }
+
+  .c__pulse {
+    position: absolute; inset: -6%; border-radius: 16px; pointer-events: none; opacity: 0;
+    background: radial-gradient(ellipse at center, rgba(243,209,154,.5), transparent 66%);
+  }
+  .c.is-open .c__pulse { animation: cPulse .95s .3s cubic-bezier(.2,.8,.3,1) forwards; }
+  @keyframes cPulse { 0% { opacity: 0; transform: scale(.7); } 40% { opacity: 1; } 100% { opacity: 0; transform: scale(1.45); } }
+</style>
+</head>
+<body>
+  <div class="sky" aria-hidden="true">
+    <div class="sky__nebula sky__nebula--1"></div>
+    <div class="sky__nebula sky__nebula--2"></div>
+    <canvas class="sky__canvas" id="sky-canvas"></canvas>
+    <div class="sky__vignette"></div>
+  </div>
+
+  <main class="stage">
+    <p class="draw__step" style="letter-spacing:.3em">翻 牌 方 案 对 比</p>
+    <div class="demos" id="demos"></div>
+  </main>
+
+  <script type="module">
+    import { Sky } from '../js/core/sky.js';
+    import { cardBack } from '../js/core/parts.js';
+    import { renderCard } from '../js/core/card-art.js';
+    import { MAJOR_ART } from '../js/core/major-art.js';
+    import { MAJOR } from '../data/major.js';
+
+    new Sky(document.getElementById('sky-canvas')).start();
+
+    const face = renderCard(MAJOR[19], MAJOR_ART[MAJOR[19].id], { uid: '-d' });
+    const back = (u) => cardBack(u);
+
+    // B 方案：3×5 = 15 片，每片取牌背对应区域并向心外爆散
+    const COLS = 3, ROWS = 5;
+    const cells = Array.from({ length: COLS * ROWS }, (_, i) => {
+      const cx = i % COLS, cy = Math.floor(i / COLS);
+      const nx = (cx - (COLS - 1) / 2) / ((COLS - 1) / 2);
+      const ny = (cy - (ROWS - 1) / 2) / ((ROWS - 1) / 2);
+      const len = 30 + (Math.abs(nx) + Math.abs(ny)) * 26;
+      const dx = (nx * len).toFixed(0), dy = (ny * len).toFixed(0);
+      const rr = (nx * 130).toFixed(0);
+      const delay = (Math.hypot(nx, ny) * .045).toFixed(2);
+      return `<div class="b__cell" style="--cx:${cx};--cy:${cy};--dx:${dx}px;--dy:${dy}px;`
+        + `--rr:${rr}deg;animation-delay:${delay}s">${back('-bb')}</div>`;
+    }).join('');
+
+    document.getElementById('demos').innerHTML = `
+      <div class="demo">
+        <div class="stage3 a" data-fx>
+          <div class="stage3__front">${face}</div>
+          <div class="a__cover">${back('-aa')}<div class="a__beam"></div></div>
+        </div>
+        <div class="demo__txt">
+          <div class="demo__k">方案 A</div>
+          <div class="demo__n">光扫显影</div>
+          <div class="demo__d">牌不旋转。一道金红的光带横扫过去，扫过的地方牌背像显影液一样褪去，露出牌面。安静、克制、像被"照亮"。</div>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="stage3 b" data-fx>
+          <div class="stage3__front">${face}</div>
+          <div class="b__cover">${cells}</div>
+        </div>
+        <div class="demo__txt">
+          <div class="demo__k">方案 B</div>
+          <div class="demo__n">星屑消散</div>
+          <div class="demo__d">牌背碎成 15 片星屑，闪一下后向四面飞散，同时牌面从强光和模糊中浮出。最有魔法感，冲击最强。</div>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="stage3 c" data-fx>
+          <div class="c__inner">
+            <div class="c__face c__face--back">${back('-cc')}</div>
+            <div class="c__face c__face--front">${face}</div>
+          </div>
+          <div class="c__glare"></div>
+          <div class="c__pulse"></div>
+        </div>
+        <div class="demo__txt">
+          <div class="demo__k">方案 C</div>
+          <div class="demo__n">3D 翻转 + 高光</div>
+          <div class="demo__d">保留翻转，但加了三点：带过冲的缓动、翻面时扫过的高光、落定后的光晕脉冲。最稳、最像实体牌。</div>
+        </div>
+      </div>
+    `;
+
+    // ?at=N 只演示第 N 个；?t=0..100 把动画定格在该进度（截图用）
+    const q = new URLSearchParams(location.search);
+    const only = q.get('at');
+    const t = q.get('t');
+    const all = [...document.querySelectorAll('[data-fx]')];
+    const DUR = { a: .95, b: .82, c: .88 };
+    const keyOf = (e) => (e.className.match(/\b(a|b|c)\b/) || [])[1];
+
+    if (t != null) {
+      // 冻结：负延迟 + 暂停，让所有动画停在同一相对进度
+      document.body.classList.add('freeze');
+      const p = Number(t) / 100;
+      all.forEach((e) => {
+        const k = keyOf(e);
+        e.style.setProperty('--fd', (-(DUR[k] * p)).toFixed(3) + 's');
+        e.classList.add('is-open');
+      });
+    } else if (only != null) {
+      const pick = all[Number(only)];
+      pick.classList.add('is-open');
+      all.forEach((e) => { if (e !== pick) e.style.opacity = '.22'; });
+    } else {
+      // 手机上直接点卡片翻转，可反复对比
+      all.forEach((e) => {
+        e.style.cursor = 'pointer';
+        e.addEventListener('click', () => e.classList.toggle('is-open'));
+      });
+    }
+  </script>
+</body>
+</html>

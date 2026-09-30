@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>流程调试 · 星语</title>
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/sky.css">
+<link rel="stylesheet" href="../css/card-face.css">
+<link rel="stylesheet" href="../css/home.css">
+<link rel="stylesheet" href="../css/draw.css">
+</head>
+<body>
+  <div class="sky" aria-hidden="true">
+    <div class="sky__nebula sky__nebula--1"></div>
+    <div class="sky__nebula sky__nebula--2"></div>
+    <div class="sky__horizon"></div>
+    <canvas class="sky__canvas" id="sky-canvas"></canvas>
+    <div class="sky__vignette"></div>
+  </div>
+  <main class="stage" id="app"></main>
+
+  <script type="module">
+    import { Sky } from '../js/core/sky.js';
+    import { renderDraw } from '../js/views/draw.js';
+
+    new Sky(document.getElementById('sky-canvas')).start();
+
+    const app = document.getElementById('app');
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const target = new URLSearchParams(location.search).get('step') || 'mood';
+    const n = Number(new URLSearchParams(location.search).get('n') || 1);
+
+    renderDraw(app, { onBack() {}, onSaved() {} });
+
+    const wait = (sel, ms = 4000) => new Promise((res, rej) => {
+      const t0 = Date.now();
+      const tick = () => {
+        const el = document.querySelector(sel);
+        if (el) return res(el);
+        if (Date.now() - t0 > ms) return rej(new Error('timeout: ' + sel));
+        setTimeout(tick, 30);
+      };
+      tick();
+    });
+
+    (async () => {
+      try {
+        if (target === 'topic') {
+          await wait('[data-mood]'); app.querySelector('[data-mood]').click();
+        }
+        if (['deck', 'shuffled', 'reveal', 'flip1', 'flip2', 'flipped', 'reading'].includes(target)) {
+          await wait('[data-mood]'); app.querySelector('[data-mood]').click();
+          await wait('[data-topic]'); app.querySelector('[data-topic]').click();
+          await wait('#goShuffle');
+          if (target !== 'deck') {
+            app.querySelector('#goShuffle').click();
+            await wait('[data-n]');
+            if (target === 'shuffled') return;
+            app.querySelector(`[data-n="${n}"]`).click();
+            await wait('.flip');
+            if (target === 'reveal') return;
+
+            // 逐张点开，模拟"点哪张翻哪张"
+            const flips = () => app.querySelectorAll('.flip');
+            const done = () => app.querySelectorAll('.flip.is-up').length;
+            if (target === 'flip1') { flips()[0].click(); await sleep(1200); return; }
+            if (target === 'flip2') {
+              flips()[2].click(); await sleep(1000);
+              flips()[0].click(); await sleep(1200);
+              return;
+            }
+            for (const f of flips()) { if (!f.classList.contains('is-up')) { f.click(); await sleep(500); } }
+            await sleep(1600);
+            await wait('#reading');
+            await sleep(300);
+          }
+        }
+      } catch (e) {
+        document.title = 'ERR: ' + e.message;
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>

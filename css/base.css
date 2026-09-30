@@ -1,0 +1,230 @@
+/* ============================================================
+   星语 · Starlight Tarot — 基础层
+   设计令牌 / 重置 / 排版 / 通用动效
+   ============================================================ */
+
+:root {
+  /* ---------- 虚空底色（由深至浅） ---------- */
+  --void-0: #06040f;
+  --void-1: #0b0720;
+  --void-2: #140a35;
+  --void-3: #1e1150;
+  --void-4: #2a1a63;
+
+  /* ---------- 主色：星辉紫 ---------- */
+  --violet:      #8b6cff;
+  --violet-soft: #a98cff;
+  --violet-deep: #4a32a8;
+  --indigo:      #5a45d6;
+  --plum:        #c77dff;
+
+  /* ---------- 辅色：符文金 ---------- */
+  --gold:       #f3d19a;
+  --gold-bright:#ffe9c0;
+  --gold-deep:  #c9a15e;
+  --gold-glow:  rgba(243, 209, 154, .38);
+
+  /* ---------- 点缀：星尘与极光 ---------- */
+  --star: #ffffff;
+  --cyan: #7fe8ff;
+  --rose: #ff9ecb;
+
+  /* ---------- 文字 ---------- */
+  --ink:   #f5f1ff;
+  --ink-2: #c1b5e2;
+  --ink-3: #8a7db2;
+  --ink-4: #5f5480;
+
+  /* ---------- 面板 ---------- */
+  --glass:       rgba(22, 14, 52, .55);
+  --glass-strong:rgba(16, 10, 40, .82);
+  --glass-line:  rgba(169, 140, 255, .16);
+  --glass-line-2:rgba(243, 209, 154, .22);
+
+  /* ---------- 字体 ---------- */
+  --font-display: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", "SimSun", serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+               "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  --font-mono: "SF Mono", "Menlo", "Consolas", monospace;
+
+  /* ---------- 尺度 ---------- */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 30px;
+
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* ---------- 动效 ---------- */
+  --ease-out:  cubic-bezier(.22, 1, .36, 1);
+  --ease-soft: cubic-bezier(.4, 0, .2, 1);
+  --t-fast: .22s;
+  --t-mid:  .42s;
+  --t-slow: .8s;
+}
+
+/* ------------------------------------------------------------
+   重置
+   ------------------------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overscroll-behavior-y: none;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--void-0);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--void-0);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+h1, h2, h3, h4, p, figure { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img, svg, canvas { display: block; max-width: 100%; }
+
+::selection { background: rgba(139, 108, 255, .35); }
+
+/* ------------------------------------------------------------
+   页面舞台：所有视图的容器
+   ------------------------------------------------------------ */
+.stage {
+  position: relative;
+  z-index: 2;
+  min-height: 100%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------
+   通用文字工具
+   ------------------------------------------------------------ */
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: .06em;
+  background: linear-gradient(175deg, var(--gold-bright) 0%, var(--gold) 42%, #b98f52 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.muted { color: var(--ink-3); }
+
+/* ------------------------------------------------------------
+   玻璃面板
+   ------------------------------------------------------------ */
+.glass {
+  position: relative;
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  border-radius: var(--r-lg);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .05) inset,
+    0 18px 48px -24px rgba(0, 0, 0, .9);
+}
+
+/* 顶部一道极细的高光，模拟玻璃边缘 */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .22), transparent);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------
+   进场动画
+   ------------------------------------------------------------ */
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 22px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: .5;  transform: scale(1); }
+  50%      { opacity: .95; transform: scale(1.06); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ------------------------------------------------------------
+   轻提示 Toast
+   ------------------------------------------------------------ */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--safe-bottom) + 34px);
+  z-index: 90;
+  transform: translate(-50%, 14px);
+  padding: 11px 22px;
+  border-radius: 999px;
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-line-2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 14px 40px -16px rgba(0, 0, 0, .9);
+  font-size: 13px;
+  letter-spacing: .12em;
+  color: var(--gold);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-mid) var(--ease-soft),
+              transform var(--t-mid) var(--ease-out);
+}
+
+.toast--on {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.rise { animation: rise var(--t-slow) var(--ease-out) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
