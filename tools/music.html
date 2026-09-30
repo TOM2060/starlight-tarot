@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>曲风试听 · 星语</title>
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/sky.css">
+<style>
+  .stage { padding: 24px 18px 40px; gap: 16px; align-items: stretch; }
+  .m-title { text-align: center; font-size: 12px; letter-spacing: .3em; color: var(--ink-3); }
+  .m-note {
+    font-size: 12.5px; line-height: 1.9; color: var(--ink-4); text-align: center;
+    max-width: 22em; margin: 0 auto;
+  }
+  .list { display: flex; flex-direction: column; gap: 11px; max-width: 420px; width: 100%; margin: 0 auto; }
+
+  .card {
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; gap: 14px;
+    padding: 15px 16px;
+    border-radius: var(--r-md);
+    background: var(--glass); border: 1px solid var(--glass-line);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    text-align: left; width: 100%;
+    transition: border-color var(--t-fast), background var(--t-fast), transform var(--t-fast);
+  }
+  .card:active { transform: scale(.98); }
+  .card.is-playing { border-color: rgba(243,209,154,.55); background: rgba(48,30,92,.5); }
+
+  .card__i { width: 34px; height: 34px; flex-shrink: 0; display: grid; place-items: center;
+             border-radius: 50%; border: 1px solid var(--glass-line); font-size: 13px; color: var(--ink-4); }
+  .card.is-playing .card__i { color: #1a1038; background: var(--gold); border-color: var(--gold); }
+
+  .card__t { display: block; font-family: var(--font-display); font-size: 17px; letter-spacing: .12em; color: var(--ink); }
+  .card__d { display: block; margin-top: 3px; font-size: 11.5px; line-height: 1.65; color: var(--ink-4); }
+
+  .eq { position: absolute; right: 16px; display: flex; align-items: flex-end; gap: 2.5px; height: 16px; }
+  .eq i { width: 2.5px; background: var(--gold); border-radius: 1px; height: 3px; opacity: .25; }
+  .card.is-playing .eq i { opacity: 1; animation: eqb .9s var(--ease-soft) infinite; }
+  @keyframes eqb { 0%,100% { height: 3px; } 50% { height: 15px; } }
+
+  .acts { display: flex; gap: 10px; justify-content: center; max-width: 420px; width: 100%; margin: 4px auto 0; }
+  .acts button { flex: 1; padding: 12px; border-radius: 999px; font-size: 13.5px; letter-spacing: .12em; }
+</style>
+</head>
+<body>
+  <div class="sky" aria-hidden="true">
+    <div class="sky__nebula sky__nebula--1"></div>
+    <canvas class="sky__canvas" id="sky"></canvas>
+    <div class="sky__vignette"></div>
+  </div>
+
+  <main class="stage">
+    <p class="m-title">曲 风 试 听</p>
+    <p class="m-note">每首约 12 秒。<br>建议插上耳机或开大一点音量，安静的地方听更准。</p>
+    <div class="list" id="list"></div>
+    <div class="acts">
+      <button class="act act--ghost" type="button" id="stop">停止</button>
+      <button class="act" type="button" id="pick" disabled>就它了</button>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initAudio, previewStyle, currentStyle } from '../js/core/audio.js';
+    import { Sky } from '../js/core/sky.js';
+    import { STYLE_LIST } from '../js/core/audio.js';
+
+    new Sky(document.getElementById('sky')).start();
+    initAudio();
+
+    const list = document.getElementById('list');
+    const pick = document.getElementById('pick');
+    let chosen = currentStyle();
+    let timer = null;
+
+    list.innerHTML = STYLE_LIST.map((s, i) => `
+      <button class="card" type="button" data-k="${s.key}">
+        <span class="card__i">${i + 1}</span>
+        <span>
+          <span class="card__t">${s.name}</span>
+          <span class="card__d">${s.desc}</span>
+        </span>
+        <span class="eq" aria-hidden="true"><i style="animation-delay:0s"></i><i style="animation-delay:.12s"></i><i style="animation-delay:.24s"></i><i style="animation-delay:.36s"></i></span>
+      </button>`).join('');
+
+    const cards = [...list.querySelectorAll('.card')];
+
+    const stop = () => {
+      clearTimeout(timer);
+      cards.forEach((c) => c.classList.remove('is-playing'));
+    };
+
+    cards.forEach((c) => c.addEventListener('click', () => {
+      initAudio();
+      const k = c.dataset.k;
+      stop();
+      c.classList.add('is-playing');
+      chosen = k;
+      pick.disabled = false;
+      pick.textContent = `选「${STYLE_LIST.find((s) => s.key === k).name}」`;
+      previewStyle(k, 12);
+      timer = setTimeout(stop, 12000);
+    }));
+
+    document.getElementById('stop').addEventListener('click', stop);
+    pick.addEventListener('click', () => {
+      localStorage.setItem('starlight-tarot:style', JSON.stringify(chosen));
+      // 同步写入正式设置
+      const raw = JSON.parse(localStorage.getItem('starlight-tarot:v1') || '{}');
+      raw.audio = { ...(raw.audio || {}), style: chosen };
+      localStorage.setItem('starlight-tarot:v1', JSON.stringify(raw));
+      pick.textContent = '已选择 ✓';
+      document.title = 'CHOSEN:' + chosen;
+    });
+  </script>
+</body>
+</html>

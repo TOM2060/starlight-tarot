@@ -2,7 +2,7 @@
    星语 · Starlight Tarot — 设置面板 / 彩蛋弹窗
    ============================================================ */
 
-import { audioSettings, setSfx, setBgm, setVolume, sfx } from './core/audio.js';
+import { audioSettings, setSfx, setBgm, setVolume, sfx, STYLE_LIST, previewStyle, currentStyle } from './core/audio.js';
 
 /* ------------------------------------------------------------
    设置面板
@@ -32,6 +32,14 @@ export function openSettings() {
         </button>
       </div>
 
+      <div class="srow srow--style">
+        <div class="srow__t">曲风</div>
+        <div class="chips" id="styles">
+          ${STYLE_LIST.map((s) =>
+            `<button class="chip ${s.key === currentStyle() ? 'is-on' : ''}" type="button" data-s="${s.key}">${s.name}</button>`).join('')}
+        </div>
+      </div>
+
       <div class="srow srow--vol">
         <div class="srow__t">音量</div>
         <input class="slider" type="range" min="0" max="100" value="${Math.round(audioSettings.volume * 100)}" data-k="vol">
@@ -53,6 +61,14 @@ export function openSettings() {
       b.classList.toggle('is-on', on);
       if (b.dataset.k === 'sfx') { setSfx(on); sfx('tap'); }
       else { setBgm(on); if (on) sfx('reveal'); }
+    });
+  });
+
+  el.querySelectorAll('#styles .chip').forEach((c) => {
+    c.addEventListener('click', () => {
+      el.querySelectorAll('#styles .chip').forEach((x) => x.classList.remove('is-on'));
+      c.classList.add('is-on');
+      previewStyle(c.dataset.s, 10);   // 试听 10 秒
     });
   });
 

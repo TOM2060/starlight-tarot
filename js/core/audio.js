@@ -20,6 +20,7 @@ const settings = {
   sfx: true,
   bgm: true,
   volume: 0.7,
+  style: 'starlight',
 };
 
 function load() {
@@ -149,8 +150,8 @@ const SFX = {
 
   /** 答错：柔和下行两音（不惊吓） */
   wrong: () => {
-    tone(392, { dur: 0.26, type: 'sine', vol: 0.13 });
-    tone(293.66, { dur: 0.42, type: 'sine', vol: 0.12, delay: 0.11 });
+    tone(587.33, { dur: 0.24, type: 'sine', vol: 0.11 });
+    tone(440, { dur: 0.4, type: 'sine', vol: 0.1, delay: 0.1 });
   },
 
   /** 保存：轻柔铃音 */
@@ -186,84 +187,164 @@ export function sfx(name) {
 }
 
 /* ------------------------------------------------------------
-   背景音：星空氛围
-   低频持续 pad + 缓慢起伏 + 随机星尘音
+   背景音：钢琴乐句
+   ------------------------------------------------------------
+   刻意不使用任何低频（< 150Hz）——小喇叭放低频只会挤成噪音。
+   音区锁定在中央 C（C4=261.63Hz）以上。
+   做法是"乐句库 + 随机组合"：每次播放的顺序不完全一样，
+   但同属一套调式，听起来是同一个世界的音乐。
    ------------------------------------------------------------ */
 
-const PADS = [
-  { f: 110.00, type: 'sine',     g: 0.085, lfo: 0.021 },
-  { f: 164.81, type: 'sine',     g: 0.055, lfo: 0.017 },  // E3
-  { f: 220.00, type: 'sine',     g: 0.038, lfo: 0.029 },  // A3
-  { f: 329.63, type: 'triangle', g: 0.016, lfo: 0.036 },  // E4
+/** 音色：基频 + 7 个泛音，高次泛音衰减更快（钢琴的真实特性） */
+const PARTIALS = [
+  [1, 1.000, 1.00], [2, 0.46, 0.74], [3, 0.28, 0.58],
+  [4, 0.16, 0.45], [5, 0.095, 0.34], [6, 0.055, 0.26],
+  [8, 0.030, 0.18],
 ];
+
+function pianoNote(freq, at, vel = 0.1, dur = 2.6, dest = null) {
+  if (!ready) return;
+  const g0 = ctx.createGain();
+  g0.gain.value = 1;
+  g0.connect(dest || bgmGain);
+
+  // 极轻的高频柔化，避免刺耳
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 4200;
+  lp.Q.value = 0.3;
+  lp.connect(g0);
+
+  for (const [n, amp, decayScale] of PARTIALS) {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.value = freq * n;
+    // 两根弦的微小失谐：真钢琴的" beating"
+    o.detune.value = (Math.random() - 0.5) * (n > 1 ? 2.4 : 1.2);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(amp * vel, at + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur * decayScale);
+    o.connect(g).connect(lp);
+    o.start(at);
+    o.stop(at + dur + 0.15);
+  }
+}
+
+/* ---------- 曲风库 ---------- */
+const STYLES = {
+  starlight: {
+    name: '星夜',
+    desc: '缓慢的分解和弦，最接近「星语」本来的样子',
+    beat: 1.05,
+    density: 0.72,
+    // 每一小节一个和弦（Am - F - C - G），只保留中高音区
+    chords: [
+      [261.63, 329.63, 392.00, 493.88],   // Am
+      [261.63, 349.23, 440.00, 523.25],   // F
+      [261.63, 329.63, 392.00, 523.25],   // C
+      [261.63, 392.00, 493.88, 587.33],   // G
+    ],
+  },
+  moonlight: {
+    name: '月光',
+    desc: '更慢、更疏，留白很多。安静到像没放音乐',
+    beat: 1.5,
+    density: 0.46,
+    chords: [
+      [261.63, 349.23, 440.00, 523.25],   // Fmaj7
+      [261.63, 329.63, 415.30, 493.88],   // G7-ish
+      [261.63, 329.63, 392.00, 493.88],   // Cmaj7
+      [261.63, 349.23, 415.30, 523.25],   // Fmaj7
+    ],
+  },
+  dawn: {
+    name: '晨光',
+    desc: '稍微明亮一些，有一点向上的能量',
+    beat: 0.86,
+    density: 0.8,
+    chords: [
+      [293.66, 369.99, 440.00, 587.33],   // D
+      [293.66, 349.23, 440.00, 523.25],   // Bm
+      [261.63, 329.63, 392.00, 523.25],   // C
+      [293.66, 369.99, 493.88, 587.33],   // A
+    ],
+  },
+  ripple: {
+    name: '涟漪',
+    desc: '连续快速的琶音，像水面上的光在动',
+    beat: 0.52,
+    density: 0.92,
+    chords: [
+      [261.63, 329.63, 392.00, 493.88, 587.33],
+      [261.63, 349.23, 440.00, 523.25, 659.25],
+      [261.63, 329.63, 415.30, 493.88, 659.25],
+      [261.63, 392.00, 493.88, 587.33, 698.46],
+    ],
+  },
+};
+
+export const STYLE_LIST = Object.entries(STYLES)
+  .map(([k, v]) => ({ key: k, name: v.name, desc: v.desc }));
+
+/* ---------- 乐句调度 ---------- */
+let schedTimer = null;
+let beatIdx = 0;
+
+function tick() {
+  clearTimeout(schedTimer);
+  if (!ready || !settings.bgm) return;
+
+  const st = STYLES[settings.style] || STYLES.starlight;
+  const barLen = 4;                     // 每小节 4 拍
+  const bar = Math.floor(beatIdx / barLen) % st.chords.length;
+  const beatInBar = beatIdx % barLen;
+  const chord = st.chords[bar];
+
+  const now = ctx.currentTime;
+  const t = now + 0.06;                // 一点余量，避免排程抖动
+
+  // 每个小节的头两拍稍重，后两拍收一点，做出呼吸
+  const accent = beatInBar === 0 ? 0.13 : beatInBar === 2 ? 0.085 : 0.06;
+
+  // 琶音：涟漪走上下行，其余走分解
+  if (settings.style === 'ripple') {
+    const up = beatInBar < 2;
+    const idx = up ? beatInBar : 3 - beatInBar + 1;
+    pianoNote(chord[Math.min(idx, chord.length - 1)], t, accent, 1.9);
+    if (Math.random() < 0.35) {
+      pianoNote(chord[Math.min(idx + 2, chord.length - 1)] * 2, t + st.beat * 0.5, accent * 0.45, 1.4);
+    }
+  } else {
+    if (Math.random() < st.density) {
+      // 分解和弦：从中间音区取一个，偶或叠加一个
+      const base = chord[1 + ((beatInBar + bar) % (chord.length - 1))];
+      pianoNote(base, t, accent, 2.8);
+      if (Math.random() < 0.26 * st.density) {
+        pianoNote(base * 2, t + st.beat * 0.5, accent * 0.42, 2.0);
+      }
+    }
+  }
+
+  beatIdx++;
+  schedTimer = setTimeout(tick, st.beat * 1000);
+}
 
 function startBgm() {
   if (!ready || bgmNodes.length) return;
-
-  for (const p of PADS) {
-    const o = ctx.createOscillator();
-    o.type = p.type;
-    o.frequency.value = p.f;
-
-    // 每个声部微微失谐，产生缓慢的拍频，听感更"活"
-    const det = ctx.createOscillator();
-    det.frequency.value = 0.06 + Math.random() * 0.1;
-    const detG = ctx.createGain();
-    detG.gain.value = 1.6;
-    det.connect(detG).connect(o.detune);
-
-    const g = ctx.createGain();
-    g.gain.value = p.g;
-
-    // 极慢的音量呼吸
-    const lfo = ctx.createOscillator();
-    lfo.frequency.value = p.lfo;
-    const lfoG = ctx.createGain();
-    lfoG.gain.value = p.g * 0.55;
-    lfo.connect(lfoG).connect(g.gain);
-
-    // 低通去掉刺耳的高频
-    const f = ctx.createBiquadFilter();
-    f.type = 'lowpass';
-    f.frequency.value = 900;
-    f.Q.value = 0.4;
-
-    o.connect(g).connect(f).connect(bgmGain);
-    o.start(); lfo.start(); det.start();
-    bgmNodes.push(o, lfo, det);
-  }
-
-  // 淡入
   bgmGain.gain.setValueAtTime(0, ctx.currentTime);
-  bgmGain.gain.linearRampToValueAtTime(1, ctx.currentTime + 3.2);
-
-  scheduleSparkle();
-}
-
-/** 随机星尘音：偶尔一颗，很轻 */
-const SCALE = [1046.5, 1174.7, 1396.9, 1567.98, 1760, 2093];
-function scheduleSparkle() {
-  clearTimeout(sparkleTimer);
-  sparkleTimer = setTimeout(() => {
-    if (ready && settings.bgm) {
-      const f = SCALE[(Math.random() * SCALE.length) | 0];
-      tone(f, { dur: 2.4 + Math.random() * 1.6, type: 'sine', vol: 0.028, dest: bgmGain });
-    }
-    scheduleSparkle();
-  }, 7000 + Math.random() * 14000);
+  bgmGain.gain.linearRampToValueAtTime(1, ctx.currentTime + 4.5);
+  beatIdx = 0;
+  tick();
 }
 
 function stopBgm() {
-  clearTimeout(sparkleTimer);
+  clearTimeout(schedTimer);
   if (!bgmGain || !ctx) return;
   const t = ctx.currentTime;
   bgmGain.gain.cancelScheduledValues(t);
   bgmGain.gain.setValueAtTime(bgmGain.gain.value, t);
-  bgmGain.gain.linearRampToValueAtTime(0, t + 0.8);
-  setTimeout(() => {
-    bgmNodes.forEach((n) => { try { n.stop(); } catch { /* 已停止 */ } });
-    bgmNodes = [];
-  }, 900);
+  bgmGain.gain.linearRampToValueAtTime(0, t + 1.4);
 }
 
 /* ------------------------------------------------------------
@@ -284,6 +365,27 @@ export function setBgm(on) {
   if (!ready) return;
   on ? startBgm() : stopBgm();
 }
+/** 试听：立即用某首曲子播一小段 */
+export function previewStyle(key, seconds = 12) {
+  if (!ready) initAudio();
+  if (!ready) return false;
+  // iOS / Chrome：上下文可能处于 suspended，必须在用户手势内恢复
+  if (ctx.state === 'suspended') ctx.resume();
+  stopBgm();
+  settings.style = key;
+  save();
+  bgmGain.gain.cancelScheduledValues(ctx.currentTime);
+  bgmGain.gain.setValueAtTime(0, ctx.currentTime);
+  bgmGain.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.5);
+  tick();
+  setTimeout(() => {
+    if (settings.style === key) { stopBgm(); startBgm(); }
+  }, seconds * 1000);
+  return true;
+}
+
+export const currentStyle = () => settings.style;
+
 export function setVolume(v) {
   settings.volume = Math.max(0, Math.min(1, v));
   save();
