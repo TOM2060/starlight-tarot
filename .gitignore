@@ -1,3 +1,6 @@
+# 开发过程的截图与记录，不属于游戏本体，不参与部署
+docs/
+
 .DS_Store
 *.tmp
 node_modules/
