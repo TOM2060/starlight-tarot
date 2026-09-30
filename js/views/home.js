@@ -3,6 +3,7 @@
    ============================================================ */
 
 import { cardBack } from '../core/parts.js';
+import { audioStatus } from '../core/audio.js';
 import { store, todayKey } from '../core/store.js';
 
 /* ---------- 每日星语：按日期取一句，保证当天固定 ---------- */
@@ -60,6 +61,16 @@ export function renderHome(app, { onSelect } = {}) {
   const signed = !!store.get(`moodLog.${todayKey()}`, null);
 
   app.innerHTML = `
+  <div class="audio-hint" id="audioHint">
+    <span class="audio-hint__ico" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9.5v5M8 6.5v11M12 4v16M16 7.5v9M20 10v4"/>
+      </svg>
+    </span>
+    <span class="audio-hint__t" id="audioHintT">轻触任意处 · 开启声音</span>
+  </div>
+
   <header class="hero rise">
     <div class="hero__mark" aria-hidden="true">
       <svg viewBox="0 0 40 40">
@@ -122,6 +133,26 @@ export function renderHome(app, { onSelect } = {}) {
     </button>
   </footer>
   `;
+
+  /* 声音引导：iOS 要求用户手势才能出声，给一个明确提示 */
+  const hint = app.querySelector('#audioHint');
+  const hintT = app.querySelector('#audioHintT');
+  window.addEventListener('sl-audio-on', function done() {
+    window.removeEventListener('sl-audio-on', done);
+    hint?.classList.add('is-off');
+    // 若仍被挂起，多半是 iPhone 侧边静音开关
+    setTimeout(() => {
+      if (audioStatus().blocked) {
+        hintT.textContent = '请检查 iPhone 侧边的静音开关';
+        hint.classList.remove('is-off');
+      }
+    }, 600);
+  }, { once: true });
+  // 12 秒后仍未开启：多半用户还没碰，或被静音开关挡住
+  setTimeout(() => {
+    if (audioStatus().ready) return;
+    hintT.textContent = '轻触任意处 · 开启声音';
+  }, 12000);
 
   app.querySelector('.oracle__btn')?.addEventListener('click', () => onSelect?.('draw'));
 

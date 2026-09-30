@@ -2,7 +2,10 @@
    星语 · Starlight Tarot — 设置面板 / 彩蛋弹窗
    ============================================================ */
 
-import { audioSettings, setSfx, setBgm, setVolume, sfx, STYLE_LIST, previewStyle, currentStyle } from './core/audio.js';
+import {
+  audioSettings, setSfx, setBgm, setVolume, sfx, initAudio,
+  STYLE_LIST, previewStyle, currentStyle, audioStatus,
+} from './core/audio.js';
 
 /* ------------------------------------------------------------
    设置面板
@@ -46,11 +49,35 @@ export function openSettings() {
         <span class="srow__n" id="vnum">${Math.round(audioSettings.volume * 100)}</span>
       </div>
 
-      <p class="settings__note">所有声音都是实时合成的，没有加载任何音频文件。<br>第一次点击页面后才会开始发声，这是浏览器的限制。</p>
+      <div class="settings__state" id="aState"></div>
+
+      <p class="settings__note" id="aNote"></p>
       <button class="act act--ghost settings__ok" type="button" data-close>好了</button>
     </div>`;
 
   document.body.appendChild(el);
+
+  /* 音频状态：告诉用户到底是"没开"还是"被静音了" */
+  const st = audioStatus();
+  const stateEl = el.querySelector('#aState');
+  const noteEl = el.querySelector('#aNote');
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+  if (st.ready && !st.blocked) {
+    stateEl.className = 'settings__state is-ok';
+    stateEl.textContent = '● 声音已开启';
+    noteEl.innerHTML = '所有声音都是实时合成的，没有加载任何音频文件。';
+  } else if (st.blocked) {
+    stateEl.className = 'settings__state is-bad';
+    stateEl.textContent = '● 声音被系统拦截了';
+    noteEl.innerHTML = '如果是 iPhone，请把侧边的<b>静音开关</b>拨到响铃位置。<br>网页音频会受它控制。';
+  } else {
+    stateEl.className = 'settings__state is-idle';
+    stateEl.textContent = '● 声音尚未开启';
+    noteEl.innerHTML = isIOS
+      ? '苹果规定：网页必须由你主动点击才能发声，<br>没法自动播放。回到页面随便点一下就好。'
+      : '随便点一下页面，声音就会开始。';
+  }
 
   el.querySelectorAll('[data-close]').forEach((b) =>
     b.addEventListener('click', () => { sfx('tap'); el.remove(); }));

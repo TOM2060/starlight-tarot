@@ -47,7 +47,18 @@ export function initAudio() {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return false;
 
-  ctx = new AC();
+  try {
+    ctx = new AC({ latencyHint: 'interactive' });
+  } catch {
+    try { ctx = new AC(); } catch { return false; }
+  }
+
+  // iOS/Chrome：即使在用户手势内创建，上下文仍可能是 suspended，必须显式恢复
+  if (ctx.state === 'suspended') {
+    const r = ctx.resume();
+    if (r?.catch) r.catch(() => {});
+  }
+
   master = ctx.createGain();
   master.gain.value = settings.volume;
   master.connect(ctx.destination);
@@ -65,8 +76,27 @@ export function initAudio() {
   return true;
 }
 
+/**
+ * 恢复上下文。iOS 在切到别的 App、锁屏、来电后都会挂起音频，
+ * 所以每次用户触碰都应该尝试恢复一次，而不是只在启动时试。
+ */
 export function resume() {
-  if (ctx && ctx.state === 'suspended') ctx.resume();
+  if (!ctx) return false;
+  if (ctx.state === 'suspended') {
+    const r = ctx.resume();
+    if (r?.catch) r.catch(() => {});
+  }
+  return ctx.state === 'running' || ctx.state !== 'suspended';
+}
+
+/**
+ * 检测 iPhone 侧边静音开关。
+ * 苹果的静音键会连带静音网页音频，此时 context 会被挂起且时间不推进。
+ */
+export function audioStatus() {
+  if (!ctx) return { ready: false, state: 'idle', blocked: false };
+  const blocked = ctx.state === 'suspended' && ctx.currentTime === 0;
+  return { ready: true, state: ctx.state, blocked };
 }
 
 /* ------------------------------------------------------------
@@ -432,7 +462,7 @@ export function previewStyle(key, seconds = 12) {
   if (!ready) initAudio();
   if (!ready) return false;
   // iOS / Chrome：上下文可能处于 suspended，必须在用户手势内恢复
-  if (ctx.state === 'suspended') ctx.resume();
+  resume();
   stopBgm();
   settings.style = key;
   save();
@@ -456,11 +486,19 @@ export function setVolume(v) {
 
 /** 首次进入时调用：把音频挂到第一次用户手势上 */
 export function armAudio() {
-  const go = () => {
-    initAudio();
-    window.removeEventListener('pointerdown', go);
-    window.removeEventListener('touchstart', go);
+  /* iOS Safari 会对 touchstart 做延迟处理，可点元素上 pointerdown
+     甚至不触发。所以同时监听 touchend / click / keydown。
+     每次手势都尝试恢复上下文——切后台回来时 iOS 会挂起音频。 */
+  const onGesture = () => {
+    const first = !ready;
+    const ok = initAudio();
+    if (first && ok) {
+      window.dispatchEvent(new CustomEvent('sl-audio-on'));
+    }
   };
-  window.addEventListener('pointerdown', go, { once: false, passive: true });
-  window.addEventListener('touchstart', go, { once: false, passive: true });
+
+  const types = ['pointerdown', 'touchend', 'touchstart', 'click', 'keydown'];
+  for (const t of types) {
+    window.addEventListener(t, onGesture, { capture: true, passive: true });
+  }
 }

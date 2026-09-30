@@ -267,3 +267,15 @@
 .srow--style { flex-direction: column; align-items: flex-start; gap: 10px; }
 .chips { display: flex; flex-wrap: wrap; gap: 7px; }
 .chips .chip { min-width: 0; padding: 6px 15px; font-size: 12.5px; }
+
+/* 设置里的音频状态 */
+.settings__state {
+  margin-top: 14px;
+  font-size: 12.5px;
+  letter-spacing: .08em;
+  text-align: left;
+}
+.settings__state.is-ok   { color: #7fd6a0; }
+.settings__state.is-idle { color: var(--gold); }
+.settings__state.is-bad  { color: #ff9e9e; }
+.settings__note b { color: var(--gold); font-weight: 400; }
