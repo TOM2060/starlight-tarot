@@ -117,67 +117,129 @@ function noise({ dur = 0.2, freq = 2200, q = 0.9, vol = 0.18, delay = 0 } = {}) 
 
 /* ------------------------------------------------------------
    音效库
+   ------------------------------------------------------------
+   翻牌音分三段，与 CSS 的 880ms 翻转动画对齐：
+     flipLift  0ms    牌被抬起，张力感
+     flipMid   280ms  翻转中段，牌面露出的细碎摩擦
+     flipLand  880ms  落定的一下
+   这样声音和画面是"一起发生"的，而不是一个音闷到底。
    ------------------------------------------------------------ */
 const SFX = {
   /** 轻点：选项、按钮 */
   tap: () => tone(660, { dur: 0.1, type: 'sine', vol: 0.1 }),
 
-  /** 翻牌：纸张抖动 + 落定 */
-  flip: () => {
-    noise({ dur: 0.17, freq: 2600, q: 0.7, vol: 0.16 });
-    tone(520, { dur: 0.16, type: 'triangle', vol: 0.1, glideTo: 880, delay: 0.02 });
+  /** 按下：略闷，带一点点实体感 */
+  press: () => {
+    tone(320, { dur: 0.07, type: 'sine', vol: 0.07 });
+    noise({ dur: 0.05, freq: 1500, q: 1, vol: 0.04 });
   },
 
-  /** 洗牌：连续多张纸摩擦 */
+  /** 翻牌 · 第一段：抬起 */
+  flipLift: () => {
+    noise({ dur: 0.1, freq: 4600, q: 0.5, vol: 0.055 });
+    tone(520, { dur: 0.12, type: 'sine', vol: 0.04, glideTo: 760 });
+  },
+
+  /** 翻牌 · 第二段：中段的细碎摩擦（最关键的一段） */
+  flipMid: () => {
+    // 三小段不规则的高频摩擦，模拟牌面掠过
+    noise({ dur: 0.13, freq: 3400, q: 0.8, vol: 0.075, delay: 0 });
+    noise({ dur: 0.10, freq: 2600, q: 0.7, vol: 0.055, delay: 0.10 });
+    noise({ dur: 0.09, freq: 1900, q: 0.6, vol: 0.04, delay: 0.19 });
+    // 音高微微上扬
+    tone(784, { dur: 0.3, type: 'triangle', vol: 0.045, glideTo: 1175, delay: 0.02 });
+  },
+
+  /** 翻牌 · 第三段：落定 */
+  flipLand: () => {
+    noise({ dur: 0.06, freq: 1600, q: 1.1, vol: 0.13 });
+    tone(392, { dur: 0.2, type: 'sine', vol: 0.075 });
+    tone(587, { dur: 0.13, type: 'sine', vol: 0.04, delay: 0.012 });
+  },
+
+  /** 完整翻牌（不需要分段时用） */
+  flip: () => { SFX.flipLift(); setTimeout(() => SFX.flipMid(), 40); setTimeout(() => SFX.flipLand(), 210); },
+
+  /** 洗牌：连续摩擦，中途有一张滑出来 */
   shuffle: () => {
-    for (let i = 0; i < 7; i++) {
-      noise({ dur: 0.09, freq: 1800 + Math.random() * 1600, q: 0.6, vol: 0.07, delay: i * 0.072 });
+    for (let i = 0; i < 9; i++) {
+      noise({ dur: 0.075, freq: 1700 + Math.random() * 1900, q: 0.65, vol: 0.06, delay: i * 0.062 });
     }
+    // 洗到末尾，一张滑出牌堆
+    noise({ dur: 0.16, freq: 2400, q: 0.5, vol: 0.1, delay: 0.64 });
+    tone(880, { dur: 0.22, type: 'sine', vol: 0.05, glideTo: 1174, delay: 0.66 });
   },
 
   /** 揭晓：上行琶音 + 高频闪光 */
   reveal: () => {
     [523.25, 659.25, 783.99, 1046.5].forEach((f, i) =>
-      tone(f, { dur: 0.5, type: 'sine', vol: 0.13, delay: i * 0.055 }));
-    noise({ dur: 0.5, freq: 5200, q: 0.5, vol: 0.05, delay: 0.1 });
+      tone(f, { dur: 0.55, type: 'sine', vol: 0.12, delay: i * 0.058 }));
+    noise({ dur: 0.6, freq: 5200, q: 0.4, vol: 0.045, delay: 0.1 });
   },
 
   /** 答对：明亮上行三音 */
   right: () => {
     [659.25, 830.61, 987.77].forEach((f, i) =>
-      tone(f, { dur: 0.42, type: 'sine', vol: 0.15, delay: i * 0.085 }));
+      tone(f, { dur: 0.45, type: 'sine', vol: 0.14, delay: i * 0.085 }));
+    tone(1318.5, { dur: 0.6, type: 'sine', vol: 0.05, delay: 0.26 });
   },
 
-  /** 答错：柔和下行两音（不惊吓） */
+  /** 答错：柔和下行两音（刻意不刺耳） */
   wrong: () => {
-    tone(587.33, { dur: 0.24, type: 'sine', vol: 0.11 });
-    tone(440, { dur: 0.4, type: 'sine', vol: 0.1, delay: 0.1 });
+    tone(587.33, { dur: 0.24, type: 'sine', vol: 0.1 });
+    tone(440, { dur: 0.42, type: 'sine', vol: 0.095, delay: 0.1 });
   },
 
   /** 保存：轻柔铃音 */
   save: () => {
-    [880, 1318.5].forEach((f, i) =>
-      tone(f, { dur: 0.6, type: 'sine', vol: 0.1, delay: i * 0.07 }));
+    [880, 1318.5, 1760].forEach((f, i) =>
+      tone(f, { dur: 0.7, type: 'sine', vol: 0.085 - i * 0.018, delay: i * 0.07 }));
   },
 
   /** 页面切换 */
   page: () => {
-    noise({ dur: 0.12, freq: 3000, q: 0.5, vol: 0.05 });
-    tone(784, { dur: 0.16, type: 'sine', vol: 0.05 });
+    noise({ dur: 0.11, freq: 3000, q: 0.5, vol: 0.045 });
+    tone(784, { dur: 0.18, type: 'sine', vol: 0.05 });
+  },
+
+  /** 面板打开 / 关闭 */
+  open: () => {
+    tone(523, { dur: 0.22, type: 'sine', vol: 0.07, glideTo: 880 });
+  },
+  close: () => {
+    tone(880, { dur: 0.2, type: 'sine', vol: 0.06, glideTo: 523 });
+  },
+
+  /** 签到成功：一颗小星落定 */
+  star: () => {
+    tone(1046.5, { dur: 0.5, type: 'sine', vol: 0.1 });
+    tone(1567.98, { dur: 0.7, type: 'sine', vol: 0.05, delay: 0.06 });
+  },
+
+  /** 解锁新关卡 */
+  unlock: () => {
+    [659.25, 880, 1174.66].forEach((f, i) =>
+      tone(f, { dur: 0.4, type: 'triangle', vol: 0.1, delay: i * 0.09 }));
   },
 
   /** 抽到稀有牌：星光 */
   rare: () => {
     [1046.5, 1318.5, 1567.98, 2093].forEach((f, i) =>
-      tone(f, { dur: 0.9, type: 'sine', vol: 0.1, delay: i * 0.07 }));
-    noise({ dur: 0.9, freq: 7000, q: 0.4, vol: 0.04 });
+      tone(f, { dur: 1, type: 'sine', vol: 0.095, delay: i * 0.075 }));
+    noise({ dur: 1, freq: 7000, q: 0.4, vol: 0.035 });
   },
 
   /** 彩蛋：下行滑音 + 微光 */
   egg: () => {
-    tone(1567.98, { dur: 1.1, type: 'sine', vol: 0.11, glideTo: 523.25 });
+    tone(1567.98, { dur: 1.2, type: 'sine', vol: 0.1, glideTo: 523.25 });
     [784, 1046.5].forEach((f, i) =>
-      tone(f, { dur: 0.8, type: 'sine', vol: 0.07, delay: 0.2 + i * 0.13 }));
+      tone(f, { dur: 0.9, type: 'sine', vol: 0.065, delay: 0.2 + i * 0.14 }));
+  },
+
+  /** 出错：两声闷响 */
+  error: () => {
+    tone(330, { dur: 0.12, type: 'triangle', vol: 0.09 });
+    tone(262, { dur: 0.2, type: 'triangle', vol: 0.08, delay: 0.1 });
   },
 };
 

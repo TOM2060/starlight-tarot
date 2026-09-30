@@ -11,7 +11,11 @@ import { MOODS, TOPICS, drawCards, composeReading, SPREAD_POS } from '../../data
 import { zodiacOf } from '../../data/zodiac.js';
 import { makePoster, showPoster, posterLine } from '../core/poster.js';
 import { sfx } from '../core/audio.js';
-import { rareOf, comboOf, markFirstDraw, nightMode } from '../core/eggs.js';
+import {
+  rareOf, comboOf, markFirstDraw, nightMode,
+  sameSuit, allReversed, repeatCard, zodiacResonance, moodContrast,
+  drawStreak, collectMilestone,
+} from '../core/eggs.js';
 import { showEgg } from '../ui.js';
 import { store, todayKey } from '../core/store.js';
 
@@ -102,6 +106,7 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
     el.querySelector('#moods').addEventListener('click', (e) => {
       const b = e.target.closest('[data-mood]');
       if (!b) return;
+      sfx('tap');
       state.mood = b.dataset.mood;
       stepTopic();
     });
@@ -130,6 +135,7 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
     el.querySelector('#topics').addEventListener('click', (e) => {
       const b = e.target.closest('[data-topic]');
       if (!b) return;
+      sfx('tap');
       state.topic = b.dataset.topic;
       stepDeck();
     });
@@ -155,6 +161,7 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
     const go = el.querySelector('#goShuffle');
 
     go.addEventListener('click', async () => {
+      sfx('press');
       sfx('shuffle');
       go.disabled = true;
       go.textContent = '洗牌中…';
@@ -168,6 +175,7 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
       el.querySelector('#deckHint').textContent = '好了。抽几张？';
       go.remove();
 
+      sfx('flipLand');
       const counts = document.createElement('div');
       counts.className = 'counts';
       counts.innerHTML = [
@@ -181,6 +189,7 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
       counts.addEventListener('click', (e) => {
         const b = e.target.closest('[data-n]');
         if (!b) return;
+        sfx('tap');
         state.count = Number(b.dataset.n);
         goReveal();
       });
@@ -214,6 +223,7 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
     el.querySelector('#spread').addEventListener('click', (e) => {
       const card = e.target.closest('.flip');
       if (!card || card.classList.contains('is-up')) return;
+      sfx('press');
       flipCard(Number(card.dataset.i), card);
     });
   }
@@ -230,9 +240,17 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
     node.querySelector('[data-front]').innerHTML =
       renderCard(d.card, artOf(d.card.id), { uid: `-f${i}` });
 
-    sfx('flip');
+    // 三段音与 880ms 的翻转动画对齐
+    sfx('flipLift');
     if (d.reversed) node.classList.add('is-rev');
     node.classList.add('is-up', 'is-open');
+    setTimeout(() => sfx('flipMid'), 280);
+    const inner = node.querySelector('.flip__inner');
+    inner?.addEventListener('transitionend', (e) => {
+      if (e.propertyName === 'transform') sfx('flipLand');
+    }, { once: true });
+    // 兜底：万一 transitionend 没触发
+    setTimeout(() => sfx('flipLand'), 900);
     state.flipped.add(i);
 
     // 只让最新翻开的一张保持高亮
@@ -315,26 +333,45 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
       fireEggs();
     })();
 
-    /* ---------- 彩蛋 ---------- */
+    /* ---------- 彩蛋：按优先级，只弹最值得的那一个 ---------- */
     function fireEggs() {
-      // 组合优先于单张稀有牌
+      const hist = store.get('history', []) || [];
+      const signKey = store.get('birth.sign') || null;
+      const seen = new Set();
+      hist.forEach((h) => h.cards.forEach((c) => seen.add(c.id)));
+
+      // 1 首次抽牌（纪念优先，只此一次）
+      const first = markFirstDraw(state.draws.map((d) => d.card.id));
+      if (first) return showEgg({ tag: '第 一 次', name: '初 次 抽 牌', line: first });
+
+      // 2 隐藏组合
       const combo = comboOf(state.draws);
-      if (combo) {
-        sfx('rare');
-        showEgg({ tag: '隐 藏 组 合', name: '✦', line: combo.line });
-        return;
-      }
+      if (combo) { sfx('rare'); return showEgg({ tag: '隐 藏 组 合', name: '✦', line: combo.line }); }
+
+      // 3 稀有牌
       const rareId = state.draws.map((d) => d.card.id).find((id) => rareOf(id));
       const rare = rareId && rareOf(rareId);
-      if (rare) {
-        sfx('rare');
-        showEgg({ tag: '稀 有 之 牌', name: rare.name, line: rare.line });
-        return;
-      }
-      const first = markFirstDraw(state.draws.map((d) => d.card.id));
-      if (first) {
-        showEgg({ tag: '第 一 次', name: '初 次 抽 牌', line: first });
-      }
+      if (rare) { sfx('rare'); return showEgg({ tag: '稀 有 之 牌', name: rare.name, line: rare.line }); }
+
+      // 4 连续同牌 / 全同花色 / 全逆位
+      const rep = repeatCard(state.draws, hist);
+      if (rep) { sfx('egg'); return showEgg(rep); }
+      const suit = sameSuit(state.draws);
+      if (suit) { sfx('egg'); return showEgg(suit); }
+      const rev = allReversed(state.draws);
+      if (rev) { sfx('egg'); return showEgg(rev); }
+
+      // 5 星座 / 心情呼应
+      const zo = zodiacResonance(state.draws, signKey);
+      if (zo) { sfx('egg'); return showEgg(zo); }
+      const mc = moodContrast(state.draws, state.mood);
+      if (mc) { sfx('egg'); return showEgg(mc); }
+
+      // 6 连续抽牌 / 牌库收集
+      const st = drawStreak(hist);
+      if (st) { sfx('egg'); return showEgg(st); }
+      const col = collectMilestone(seen.size);
+      if (col) { sfx('rare'); return showEgg(col); }
     }
 
     /* 保存 */
@@ -370,6 +407,7 @@ export function renderDraw(root, { onBack, onSaved, onPoster } = {}) {
         onPoster?.();
       } catch (err) {
         console.error(err);
+        sfx('error');
         btn.textContent = '生成失败，请重试';
         setTimeout(() => { btn.textContent = '生成海报'; btn.disabled = false; }, 1600);
         return;

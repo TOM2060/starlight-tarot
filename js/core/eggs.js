@@ -90,3 +90,116 @@ export function markFirstDraw(ids) {
   store.set(firstDrawKey, { ids, at: new Date().toISOString(), day: todayKey() });
   return '这是你在星语抽的第一副牌。\n它会一直记在这里。';
 }
+
+/* ============================================================
+   彩蛋 · 第二批
+   ============================================================ */
+
+/** 三张全同花色 */
+export function sameSuit(draws) {
+  if (draws.length < 2) return null;
+  const suits = new Set(draws.map((d) => d.card.suit));
+  if (suits.size !== 1) return null;
+  const suit = [...suits][0];
+  const NAME = { wands: '权杖', cups: '圣杯', swords: '宝剑', coins: '星币', major: '大牌' };
+  return {
+    tag: '同 一 花 色',
+    name: NAME[suit] || suit,
+    line: `这副牌里有 ${draws.length} 张${NAME[suit] || ''}。\n同一件事说了三遍——它大概真的很想被听见。`,
+  };
+}
+
+/** 三张全逆位 */
+export function allReversed(draws) {
+  if (draws.length < 2 || draws.some((d) => !d.reversed)) return null;
+  return {
+    tag: '全 逆 位',
+    name: '沉 下 来 了',
+    line: '全部朝下。\n这不是坏事，是提醒你：这件事该从内部看看了。',
+  };
+}
+
+/** 连续 3 次抽到同一张牌 */
+export function repeatCard(draws, history) {
+  if (!draws.length) return null;
+  const id = draws[0].card.id;
+  const hit = history.filter((h) => h.cards[0]?.id === id).length;
+  if (hit < 3) return null;
+  return {
+    tag: '第 ' + hit + ' 次 相 遇',
+    name: draws[0].card.name,
+    line: '同一张牌已经来找你 ' + hit + ' 次了。\n它大概有话没说完。',
+  };
+}
+
+/** 星座 × 守护牌 */
+const ZODIAC = {
+  aries:     { cards: ['wands-01', 'wands-knight'], line: '白羊的守护元素是火。这张牌正烧着。' },
+  taurus:    { cards: ['coins-01', 'coins-king'], line: '金牛的守护元素是土。这张牌踩得很稳。' },
+  gemini:    { cards: ['swords-01', 'swords-page'], line: '双子的守护元素是风。这张牌来得很快。' },
+  cancer:    { cards: ['cups-02', 'cups-queen'], line: '巨蟹的守护元素是水。这张牌有点想靠近你。' },
+  leo:       { cards: ['major-19'], line: '狮子的守护牌是太阳。难怪你今天很亮。' },
+  virgo:     { cards: ['swords-03'], line: '处女的守护牌是宝剑三。看清，比感觉难。' },
+  libra:     { cards: ['major-11'], line: '天秤的守护牌是正义。你一向在意公平。' },
+  scorpio:   { cards: ['major-18'], line: '天蝎的守护牌是月亮。你一向看得很深。' },
+  sagittarius: { cards: ['wands-knight'], line: '射手的守护牌是权杖骑士。该跑了。' },
+  capricorn: { cards: ['coins-king'], line: '摩羯的守护牌是星币国王。稳是你的天赋。' },
+  aquarius:  { cards: ['major-17'], line: '水瓶的守护牌是星星。你身上有点不一样的东西。' },
+  pisces:    { cards: ['cups-01'], line: '双鱼的守护牌是圣杯首牌。你的感受力是天赋。' },
+};
+
+/** 心情与牌的反差 */
+const MOOD_CONTRAST = {
+  lost:    { cards: ['major-19', 'major-21', 'major-17'], line: '迷茫的时候抽到这张——\n说明方向早就在了，只是你还没低头看见。' },
+  anxious: { cards: ['major-21', 'major-19'], line: '不踏实的时候抽到这张——\n你正在担心的事，可能已经在往好的方向走了。' },
+  tired:   { cards: ['major-00', 'major-17', 'cups-01'], line: '很累的时候抽到这张——\n它不是让你再撑，是允许你重新开始。' },
+  love:    { cards: ['swords-01', 'major-15'], line: '心里装着一个人的时候抽到这张——\n看清对方，比更喜欢更重要。' },
+  happy:   { cards: ['major-12', 'coins-05'], line: '心情好的时候抽到这张——\n提醒你：好日子也值得认真过。' },
+  calm:    { cards: ['major-07', 'wands-08'], line: '平静的时候抽到这张——\n它说的是一件还在往前走的事。' },
+};
+
+export function zodiacResonance(draws, signKey) {
+  const z = ZODIAC[signKey];
+  if (!z) return null;
+  const hit = draws.find((d) => z.cards.includes(d.card.id));
+  if (!hit) return null;
+  return { tag: '星 座 共 鸣', name: z.line.slice(0, 5), line: z.line };
+}
+
+export function moodContrast(draws, moodId) {
+  const m = MOOD_CONTRAST[moodId];
+  if (!m) return null;
+  const hit = draws.find((d) => m.cards.includes(d.card.id));
+  if (!hit) return null;
+  return { tag: '心 情 呼 应', name: '★', line: m.line };
+}
+
+/** 连续 7 天抽牌 */
+export function drawStreak(history) {
+  const days = new Set(history.map((h) => h.day));
+  let n = 0;
+  const d = new Date();
+  for (;;) {
+    const p = (x) => String(x).padStart(2, '0');
+    const key = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    if (days.has(key)) n++;
+    else if (n > 0) break;
+    else if (key !== todayKey()) break;
+    d.setDate(d.getDate() - 1);
+    if (n > 400) break;
+  }
+  if (n < 7) return null;
+  return { tag: '连 续 抽 牌', name: `${n} 天`, line: `你已经连着 ${n} 天来了。\n这不叫习惯，这叫惦记。` };
+}
+
+/** 本月见过的不同牌数里程碑 */
+const COLLECT = {
+  10: '见了 10 张不同的牌。你在认它们了。',
+  30: '见过 30 张不同的牌。这副牌开始有你的样子。',
+  50: '见过 50 张。再多点，就能凑齐一整副。',
+  78: '七十八张，全部见过。\n你可以闭着眼睛翻牌了。',
+};
+export function collectMilestone(seenCount) {
+  if (!COLLECT[seenCount]) return null;
+  return { tag: '牌 库 收 集', name: `${seenCount} / 78`, line: COLLECT[seenCount] };
+}

@@ -6,6 +6,9 @@
 import { ARROW_BACK, CHECK } from '../core/parts.js';
 import { MOODS } from '../../data/cards.js';
 import { store, todayKey } from '../core/store.js';
+import { sfx } from '../core/audio.js';
+import { milestoneOf } from '../core/eggs.js';
+import { showEgg } from '../ui.js';
 
 function streakAfter(today) {
   const log = store.get('moodLog', {}) || {};
@@ -60,17 +63,21 @@ export function renderMood(root, { onBack, onDone } = {}) {
     </div>
     `;
 
-    el.querySelector('[data-back]').addEventListener('click', () => onBack?.());
+    el.querySelector('[data-back]').addEventListener('click', () => { sfx('close'); onBack?.(); });
     el.querySelector('#draw')?.addEventListener('click', () => onDone?.());
 
     el.querySelector('#picks')?.addEventListener('click', (e) => {
       const b = e.target.closest('[data-m]');
       if (!b) return;
+      sfx('star');
       const cur = { ...(store.get('moodLog', {}) || {}) };
       cur[today] = b.dataset.m;
       store.set('moodLog', cur);
+      sfx('star');
+      const ms = milestoneOf(streakAfter(today));
       render();
       onDone?.();
+      if (ms) showEgg({ tag: '连 续 签 到', name: `${streakAfter(today)} 天`, line: ms });
     });
   }
 

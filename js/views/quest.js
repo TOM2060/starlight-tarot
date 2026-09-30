@@ -71,7 +71,7 @@ export function renderQuest(root, { onBack, onToast, startAt } = {}) {
       `).join('')}
     </div>`;
 
-    el.querySelector('[data-back]').addEventListener('click', () => onBack?.());
+    el.querySelector('[data-back]').addEventListener('click', () => { sfx('close'); onBack?.(); });
     el.querySelectorAll('.node').forEach((b) => {
       b.addEventListener('click', () => play(Number(b.dataset.no)));
     });
@@ -131,6 +131,7 @@ export function renderQuest(root, { onBack, onToast, startAt } = {}) {
         const set = cleared();
         set.add(no);
         store.set(KEY, [...set]);
+        sfx('unlock');
         onToast?.('答对了 ✦');
         resEl.className = 'quiz__result is-ok';
         resEl.innerHTML = `

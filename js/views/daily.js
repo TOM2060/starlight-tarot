@@ -9,6 +9,7 @@ import { artOf } from '../core/art-index.js';
 import { CARDS, getCard } from '../../data/cards.js';
 import { zodiacOf } from '../../data/zodiac.js';
 import { makePoster, showPoster, posterLine } from '../core/poster.js';
+import { sfx } from '../core/audio.js';
 import { store, todayKey } from '../core/store.js';
 
 /** 由日期字符串生成稳定的伪随机数 */
@@ -77,7 +78,7 @@ export function renderDaily(root, { onBack, onRecord, onShare } = {}) {
   </div>
   `;
 
-  el.querySelector('[data-back]').addEventListener('click', () => onBack?.());
+  el.querySelector('[data-back]').addEventListener('click', () => { sfx('close'); onBack?.(); });
   el.querySelector('#rec')?.addEventListener('click', () => onRecord?.());
   el.querySelector('#share')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget;
