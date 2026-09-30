@@ -19,6 +19,7 @@ let ready = false;
 const settings = {
   sfx: true,
   bgm: true,
+  muted: false,        // 快速静音：只记这一个开关
   volume: 0.7,
   style: 'starlight',
 };
@@ -72,8 +73,19 @@ export function initAudio() {
   bgmGain.connect(master);
 
   ready = true;
-  if (settings.bgm) startBgm();
+  applyGains();
+  if (settings.bgm && !settings.muted) startBgm();
   return true;
+}
+
+/** 把设置映射到实际的增益上。静音优先于各自分开关。 */
+function applyGains() {
+  if (!ready) return;
+  sfxGain.gain.value = (!settings.sfx || settings.muted) ? 0 : 1;
+  const target = (!settings.bgm || settings.muted) ? 0 : 1;
+  bgmGain.gain.cancelScheduledValues(ctx.currentTime);
+  // 0.35 秒左右淡入淡出，不会有突兀的断音
+  bgmGain.gain.setTargetAtTime(target, ctx.currentTime, 0.35);
 }
 
 /**
@@ -445,17 +457,36 @@ function stopBgm() {
 export const audioSettings = {
   get sfx() { return settings.sfx; },
   get bgm() { return settings.bgm; },
+  get muted() { return settings.muted; },
   get volume() { return settings.volume; },
 };
 
 export function setSfx(on) {
   settings.sfx = on; save();
-  if (sfxGain) sfxGain.gain.value = on ? 1 : 0;
+  applyGains();
 }
 export function setBgm(on) {
   settings.bgm = on; save();
+  applyGains();
   if (!ready) return;
-  on ? startBgm() : stopBgm();
+  if (on && !settings.muted) startBgm();
+  else if (on) startBgm();
+  else stopBgm();
+}
+
+/* ---------- 快速静音（底部图标） ---------- */
+export const isMuted = () => settings.muted;
+
+export function setMuted(v) {
+  settings.muted = !!v; save();
+  if (!ready) return settings.muted;
+  applyGains();
+  if (!settings.muted && settings.bgm) startBgm();
+  return settings.muted;
+}
+
+export function toggleMute() {
+  return setMuted(!settings.muted);
 }
 /** 试听：立即用某首曲子播一小段 */
 export function previewStyle(key, seconds = 12) {

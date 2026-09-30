@@ -313,3 +313,30 @@
   padding: 8px 11px;
 }
 .foot__btn--icon svg { width: 15px; height: 15px; }
+
+/* ---------- 声音开关键的状态 ---------- */
+.foot__btn--icon { position: relative; }
+
+.foot__slash {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 20px; height: 1.5px;
+  margin: -.75px 0 0 -10px;
+  border-radius: 1px;
+  background: var(--ink-4);
+  transform: scaleX(0) rotate(-45deg);
+  transform-origin: center;
+  transition: transform .28s var(--ease-out), background var(--t-fast);
+}
+
+.foot__btn--icon.is-muted { color: var(--ink-4); border-color: var(--glass-line); }
+.foot__btn--icon.is-muted svg { opacity: .38; }
+.foot__btn--icon.is-muted .foot__slash { transform: scaleX(1) rotate(-45deg); background: var(--ink-3); }
+
+/* 首页常驻：第一次抽到的那张 */
+.oracle__first {
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  color: var(--ink-4);
+  margin-top: -6px;
+}

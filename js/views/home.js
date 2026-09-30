@@ -3,7 +3,10 @@
    ============================================================ */
 
 import { cardBack } from '../core/parts.js';
+import { isMuted, toggleMute, sfx, audioSettings } from '../core/audio.js';
+import { openSettings } from '../ui.js';
 import { store, todayKey } from '../core/store.js';
+import { getCard } from '../../data/cards.js';
 
 /* ---------- 每日星语：按日期取一句，保证当天固定 ---------- */
 const DAILY_LINES = [
@@ -59,6 +62,10 @@ export function renderHome(app, { onSelect } = {}) {
   const drewDaily = !!store.get(`daily.${todayKey()}`, null);
   const signed = !!store.get(`moodLog.${todayKey()}`, null);
 
+  /* 第一次抽到的那张牌，常驻首页 */
+  const first = store.get('egg.firstDraw', null);
+  const firstName = first ? (getCard(first.ids[0]) || {}).name : null;
+
   app.innerHTML = `
   <header class="hero rise">
     <div class="hero__mark" aria-hidden="true">
@@ -83,6 +90,7 @@ export function renderHome(app, { onSelect } = {}) {
       <span class="oracle__halo" aria-hidden="true"></span>
       ${cardBack('-h')}
       <span class="oracle__hint">${drewDaily ? '今日一牌已翻开 · 再抽一张' : '触碰牌面 · 抽取今日之牌'}</span>
+      ${firstName ? `<span class="oracle__first">你的第一张牌，是「${firstName}」</span>` : ''}
     </button>
   </section>
 
@@ -113,17 +121,53 @@ export function renderHome(app, { onSelect } = {}) {
     <button class="foot__btn" type="button" data-action="book">
       ${ICONS.book}<span>我的记录本</span>
     </button>
-    <button class="foot__btn foot__btn--icon" type="button" data-action="settings"
-            aria-label="声音设置">
+    <button class="foot__btn foot__btn--icon" type="button" data-action="atlas"
+            aria-label="牌库图鉴">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linejoin="round">
+        <rect x="3" y="3" width="7.4" height="7.4" rx="1.4"/>
+        <rect x="13.6" y="3" width="7.4" height="7.4" rx="1.4"/>
+        <rect x="3" y="13.6" width="7.4" height="7.4" rx="1.4"/>
+        <rect x="13.6" y="13.6" width="7.4" height="7.4" rx="1.4"/>
+      </svg>
+    </button>
+    <button class="foot__btn foot__btn--icon ${isMuted() ? 'is-muted' : ''}" type="button"
+            data-action="sound" aria-label="声音开关：点击切换，长按打开设置">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
            stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 9.5v5M8 6.5v11M12 4v16M16 7.5v9M20 10v4"/>
       </svg>
+      <i class="foot__slash" aria-hidden="true"></i>
     </button>
   </footer>
   `;
 
   app.querySelector('.oracle__btn')?.addEventListener('click', () => onSelect?.('draw'));
+
+  /* 声音按钮：点一下静音/恢复，长按进设置 */
+  const sndBtn = app.querySelector('[data-action="sound"]');
+  if (sndBtn) {
+    let timer = null, longFired = false;
+
+    const beginHold = () => {
+      longFired = false;
+      clearTimeout(timer);
+      timer = setTimeout(() => { longFired = true; openSettings(); }, 480);
+    };
+    const endHold = () => clearTimeout(timer);
+
+    sndBtn.addEventListener('pointerdown', beginHold);
+    sndBtn.addEventListener('pointerup', endHold);
+    sndBtn.addEventListener('pointercancel', endHold);
+    sndBtn.addEventListener('pointerleave', endHold);
+
+    sndBtn.addEventListener('click', () => {
+      if (longFired) { longFired = false; return; }
+      const muted = toggleMute();
+      sndBtn.classList.toggle('is-muted', muted);
+      if (!muted) sfx('tap');
+    });
+  }
 
   app.querySelectorAll('.entry').forEach((btn) => {
     btn.addEventListener('click', () => onSelect?.(btn.dataset.action));

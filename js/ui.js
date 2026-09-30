@@ -63,7 +63,11 @@ export function openSettings() {
   const noteEl = el.querySelector('#aNote');
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
-  if (st.ready && !st.blocked) {
+  if (audioSettings.muted) {
+    stateEl.className = 'settings__state is-idle';
+    stateEl.textContent = '● 已静音（首页音量图标可一键恢复）';
+    noteEl.innerHTML = '快捷键仍然有效，只是暂时不出声。';
+  } else if (st.ready && !st.blocked) {
     stateEl.className = 'settings__state is-ok';
     stateEl.textContent = '● 声音已开启';
     noteEl.innerHTML = '所有声音都是实时合成的，没有加载任何音频文件。';

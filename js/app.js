@@ -9,12 +9,22 @@ import { renderDaily } from './views/daily.js';
 import { renderMood } from './views/mood.js';
 import { renderBook } from './views/book.js';
 import { renderQuest } from './views/quest.js';
+import { renderAtlas } from './views/atlas.js';
 import { store } from './core/store.js';
 import { armAudio, sfx, initAudio } from './core/audio.js';
 import { openSettings } from './ui.js';
 import { nightMode, nightLine } from './core/eggs.js';
 
 const app = document.getElementById('app');
+
+/* ---------- 离线：仅在安全上下文下注册 ---------- */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {
+      /* 注册失败不影响使用，只是没有离线能力 */
+    });
+  });
+}
 
 /* ---------- 音频：必须等用户第一次触碰才能启动（浏览器限制） ---------- */
 armAudio();
@@ -85,8 +95,13 @@ function showQuest() {
   renderQuest(app, { onBack: showHome, onToast: (t) => toast(t), startAt: no && Number(no) });
 }
 
+function showAtlas() {
+  renderAtlas(app, { onBack: showHome });
+}
+
 const ROUTES = {
   settings: openSettings,
+  atlas: showAtlas,
   draw:  showDraw,
   free:  showDraw,
   today: showDaily,

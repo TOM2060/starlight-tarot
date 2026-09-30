@@ -434,39 +434,43 @@ const justice = () => `
    12 · 吊人 The Hanged Man
    ============================================================ */
 const hanged = () => `
-  ${halo(60, 122, 40, null, .75)}
+  ${halo(60, 124, 42, null, .75)}
 
   <!-- T 形架 -->
-  <path d="M12 52h96" stroke="${G()}" stroke-width="2.4" opacity=".9" stroke-linecap="round"/>
-  <path d="M60 52v14" stroke="${G()}" stroke-width="1.1" opacity=".8"/>
-  <path d="M18 52v9M30 52v9M90 52v9M102 52v9"
-        stroke="${G()}" stroke-width=".55" opacity=".3"/>
+  <path d="M10 50h100" stroke="${G()}" stroke-width="2.6" opacity=".9" stroke-linecap="round"/>
+  <path d="M16 50v10M26 50v10M94 50v10M104 50v10"
+        stroke="${G()}" stroke-width=".6" opacity=".32"/>
 
-  <!-- 倒悬者：双腿在横梁上交叉成四字 -->
-  <g>
-    <path d="M60 66 L50 84" stroke="${G()}" stroke-width="2" stroke-linecap="round" fill="none"/>
-    <path d="M60 66 L70 84" stroke="${G()}" stroke-width="2" stroke-linecap="round" fill="none" opacity=".85"/>
-    <path d="M60 66v20" stroke="${G()}" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".7"/>
+  <!-- 绑在横梁上的右腿：伸直 -->
+  <path d="M62 56 L62 86" stroke="${G()}" stroke-width="3.2" stroke-linecap="round" opacity=".95"/>
 
-    <!-- 倒挂的躯干 -->
-    <path d="M50 84 Q44 104 48 120 Q60 130 72 120 Q76 104 70 84
-             Q60 78 50 84Z" fill="${SIL()}" stroke="${G()}" stroke-width=".85" stroke-linejoin="round"/>
-    <!-- 手臂反绑于背后 -->
-    <path d="M50 96q-5 8 -1 15M70 96q5 8 1 15" stroke="${G()}"
-          stroke-width="1.1" stroke-linecap="round" fill="none" opacity=".8"/>
-    <!-- 头（朝下） -->
-    <circle cx="60" cy="132" r="6" fill="${SIL()}" stroke="${G()}" stroke-width=".85"/>
-    <path d="M56.6 131q3.4 -2 6.8 0" fill="none" stroke="${G()}" stroke-width=".45" opacity=".55"/>
-  </g>
+  <!-- 交叉成四字的左腿 -->
+  <path d="M60 62 L46 78" stroke="${G()}" stroke-width="3.2" stroke-linecap="round" opacity=".95"/>
+  <path d="M46 78 L62 92" stroke="${G()}" stroke-width="3" stroke-linecap="round" opacity=".85"/>
 
-  <!-- 头周的光 -->
-  ${star8(60, 132, 13, G, .45)}
-  ${rays(60, 132, 22, 12, .34)}
+  <!-- 躯干（倒挂，肩窄腰宽） -->
+  <path d="M56 88 Q50 108 52 122 Q60 130 68 122 Q70 108 64 88 Z"
+        fill="${SIL()}" stroke="${G()}" stroke-width=".6"/>
+
+  <!-- 反绑在背后的手 -->
+  <path d="M53 100 Q44 108 48 118" fill="none" stroke="${G()}" stroke-width="1.3"
+        stroke-linecap="round" opacity=".8"/>
+  <path d="M67 100 Q76 108 72 118" fill="none" stroke="${G()}" stroke-width="1.3"
+        stroke-linecap="round" opacity=".8"/>
+
+  <!-- 头：朝下，加光 -->
+  <circle cx="60" cy="136" r="7" fill="${SIL()}" stroke="${G()}" stroke-width=".7"/>
+  <path d="M55.6 138 q4.4 3 8.8 0" fill="none" stroke="${G()}" stroke-width=".55" opacity=".6"/>
+  ${star4(60, 136, 15, G(), .5)}
+  ${rays(60, 136, 20, 10, .34)}
 
   <!-- 脚下静水 -->
-  <path d="M18 172q8 -3 16 0t16 0 16 0 16 0" fill="none" stroke="${G()}" stroke-width=".5" opacity=".3"/>
+  <path d="M18 170q8 -3 16 0t16 0 16 0 16 0" fill="none" stroke="${G()}"
+        stroke-width=".5" opacity=".32"/>
 `;
 
+/* ============================================================
+   13 · 死神
 /* ============================================================
    13 · 死神 Death
    ============================================================ */
@@ -501,8 +505,8 @@ const death = () => `
 const temperance = () => `
   ${halo(60, 62, 40, null, .75)}
 
-  ${wing(42, 62, 1.5, -1, .7)}
-  ${wing(78, 62, 1.5, 1, .7)}
+  ${wing(40, 74, 1.7, -1, .62)}
+  ${wing(80, 74, 1.7, 1, .62)}
 
   ${figure(60, 150, 1.45, .95, 'stand')}
 
@@ -645,6 +649,20 @@ const star = () => `
 /* ============================================================
    18 · 月亮 The Moon
    ============================================================ */
+/** 犬：狮身 + 明确的腿与尾，剪影一眼可辨（月亮用） */
+const hound = (x, y, s = 1, op = .85) => `
+  <g transform="translate(${x} ${y}) scale(${s})" opacity="${op}">
+    <path d="M-11 1 Q-13 -6 -7 -7.6 Q0 -10 6 -6.4 Q9 -4.6 8 -1
+             Q8 2 2 2.4 L-9 2.4Z" fill="${SIL()}" stroke="${G()}" stroke-width=".5"/>
+    <path d="M7 -4.4 q3.4 -3.4 5.6 -1.2 q-1.4 2.6 -5.6 1.2Z"
+          fill="${SIL()}" stroke="${G()}" stroke-width=".4"/>
+    <circle cx="11" cy="-3.6" r=".7" fill="${G()}"/>
+    <path d="M-8 2.2v5M-4.6 2.4v5.2M3 2.4v5.2M6.4 2.2v5"
+          stroke="${G()}" stroke-width=".95" stroke-linecap="round" fill="none"/>
+    <path d="M-11 0 q-5 -1 -4 -5" stroke="${G()}" stroke-width=".8"
+          fill="none" stroke-linecap="round" opacity=".8"/>
+  </g>`;
+
 const moon = () => `
   ${halo(60, 44, 32, null, .8)}
 
@@ -676,8 +694,8 @@ const moon = () => `
   <path d="M26 182 Q50 170 68 174 T98 188" fill="none" stroke="${G()}" stroke-width=".5" opacity=".28"/>
 
   <!-- 两只犬，一近一远 -->
-  ${lionSide(40, 172, .9, .9)}
-  ${lionSide(82, 176, .78, .5)}
+  ${hound(38, 170, 1.05, .92)}
+  ${hound(84, 174, .92, .55)}
 
   <!-- 爬出水面的蜥蜴 -->
   <path d="M60 186q1 -9 5.4 -9" fill="none" stroke="${G()}" stroke-width=".75" opacity=".75"/>

@@ -454,8 +454,14 @@ const swords_5 = () => `
   ${rainCloud(30, 42, .85, .55)}
   ${rainCloud(90, 40, .75, .4)}
   ${blades([[26, 152, -8, 46], [60, 158, 5, 46], [94, 152, 10, 46]], 1, .8)}
-  ${figure(44, 168, 1.6, .9, 'walk')}
-  <g transform="translate(76 168) scale(-1 1)">${figure(0, 0, 1.6, .55, 'walk')}</g>
+  ${figure(38, 170, 1.75, .94, 'walk')}
+  <g transform="translate(82 170) scale(-1 1)">${figure(0, 0, 1.75, .5, 'walk')}</g>
+  <!-- 被丢在中间的一剑 -->
+  ${blades([[60, 170, 84, 34]], .95, .65)}
+  <!-- 雨停了 -->
+  <g opacity=".3" stroke="${C}" stroke-width=".5" stroke-linecap="round">
+    <path d="M44 62l-2 5M52 60l-2 5M68 60l-2 5M76 62l-2 5"/>
+  </g>
   <path d="M10 172h100" stroke="${G}" stroke-width=".8" opacity=".5"/>
   ${count(5)}`;
 
