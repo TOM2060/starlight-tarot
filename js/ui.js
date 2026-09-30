@@ -75,7 +75,7 @@ export function openSettings() {
     stateEl.className = 'settings__state is-idle';
     stateEl.textContent = '● 声音尚未开启';
     noteEl.innerHTML = isIOS
-      ? '苹果规定：网页必须由你主动点击才能发声，<br>没法自动播放。回到页面随便点一下就好。'
+      ? '声音需要你主动点一下才会开始，<br>苹果不允许网页自动出声。<br>回到页面随便点一下就好。'
       : '随便点一下页面，声音就会开始。';
   }
 

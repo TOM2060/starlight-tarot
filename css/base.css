@@ -194,7 +194,7 @@ img, svg, canvas { display: block; max-width: 100%; }
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--safe-bottom) + 34px);
+  bottom: calc(var(--safe-bottom) + 96px);
   z-index: 90;
   transform: translate(-50%, 14px);
   padding: 11px 22px;
